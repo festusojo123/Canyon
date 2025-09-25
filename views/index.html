@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canyon </title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="description" content="Experience the future of navigation with beautiful vertical tabs and seamless Google SSO integration.">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <div class="logo-icon">
+                    <i class="fas fa-mountain-sun"></i>
+                </div>
+                <span class="logo-text">Canyon</span>
+            </div>
+            <div class="nav-menu">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#pricing" class="nav-link">Pricing</a>
+                <a href="#about" class="nav-link">About</a>
+                <button class="nav-cta" id="navSignIn">
+                    <i class="fab fa-google"></i>
+                    <span>Sign In</span>
+                </button>
+            </div>
+            <div class="mobile-menu-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-background">
+            <div class="animated-grid"></div>
+            <div class="floating-elements">
+                <div class="floating-element element-1"></div>
+                <div class="floating-element element-2"></div>
+                <div class="floating-element element-3"></div>
+                <div class="floating-element element-4"></div>
+            </div>
+        </div>
+        
+        <div class="hero-content">
+            <!-- <div class="hero-badge">
+                <i class="fas fa-sparkles"></i>
+                <span>New: Google SSO Integration</span>
+            </div> -->
+            
+            <h1 class="hero-title">
+                Configure
+                <span class="gradient-text">smart</span>.<br>
+                Price
+                <span class="gradient-text">right</span>.<br>
+                Quote
+                <span class="gradient-text">fast</span>.
+            </h1>
+            
+            <p class="hero-subtitle">
+                Streamline your sales process from configuration to signature with Canyon. 
+            </p>
+            
+            <div class="hero-buttons">
+                <button class="btn-primary" id="getStartedBtn">
+                    <i class="fab fa-google"></i>
+                    <span>Get Started with Google</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+                <button class="btn-secondary" id="exploreBtn">
+                    <i class="fas fa-play"></i>
+                    <span>Explore Features</span>
+                </button>
+            </div>
+            
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-number">50K+</div>
+                    <div class="stat-label">Active Users</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-number">99.9%</div>
+                    <div class="stat-label">Uptime</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Support</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Section with Vertical Tabs -->
+    <section class="main-content" id="features">
+        <div class="content-container">
+            <!-- Vertical Tab Navigation -->
+            <div class="vertical-tabs-container">
+                <div class="tabs-header">
+                    <h3>Explore Our Platform</h3>
+                    <p>Discover what makes us different</p>
+                </div>
+                
+                <div class="vertical-tabs-wrapper">
+                    <div class="scroll-indicator">
+                        <div class="scroll-track">
+                            <div class="scroll-thumb" id="scrollThumb"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="vertical-tabs" id="verticalTabs">
+                        <button class="tab-item active" data-tab="home">
+                            <div class="tab-icon">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <div class="tab-content">
+                                <div class="tab-title">Home</div>
+                                <div class="tab-description">Platform Introduction</div>
+                            </div>
+                            <div class="tab-indicator"></div>
+                        </button>
+
+                        <button class="tab-item" data-tab="quotes">
+                            <div class="tab-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="tab-content">
+                                <div class="tab-title">Quotes</div>
+                                <div class="tab-description">Advanced Capabilities</div>
+                            </div>
+                            <div class="tab-indicator"></div>
+                        </button>
+
+                        <button class="tab-item" data-tab="createQuotes">
+                            <div class="tab-icon">
+                                <i class="fas fa-gear"></i>
+                            </div>
+                            <div class="tab-content">
+                                <div class="tab-title">Create Quotes</div>
+                                <div class="tab-description">Get Started</div>
+                            </div>
+                            <div class="tab-indicator"></div>
+                        </button>
+
+                        <button class="tab-item" data-tab="insights">
+                            <div class="tab-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="tab-content">
+                                <div class="tab-title">Analytics</div>
+                                <div class="tab-description">Smart Insights</div>
+                            </div>
+                            <div class="tab-indicator"></div>
+                        </button>
+
+                        <button class="tab-item" data-tab="support">
+                            <div class="tab-icon">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <div class="tab-content">
+                                <div class="tab-title">Support</div>
+                                <div class="tab-description">24/7 Assistance</div>
+                            </div>
+                            <div class="tab-indicator"></div>
+                        </button>
+                    </div>
+
+                    <!-- Scroll Controls -->
+                    <div class="scroll-controls">
+                        <button class="scroll-btn scroll-up" id="scrollUp">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <button class="scroll-btn scroll-down" id="scrollDown">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Display Area -->
+            <div class="content-display">
+                <div class="content-card" id="contentCard">
+                    <div class="content-header">
+                        <div class="content-icon" id="contentIcon">🚀</div>
+                        <div class="content-titles">
+                            <h2 id="contentTitle">Platform Overview</h2>
+                            <p id="contentSubtitle">Everything you need in one place</p>
+                        </div>
+                    </div>
+                    
+                    <div class="content-body">
+                        <p id="contentText">
+                            Our comprehensive platform brings together powerful tools, intuitive design, and seamless integrations.
+                        </p>
+                        
+                        <div class="content-stats" id="contentStats">
+                            <div class="stat-box">
+                                <div class="stat-value">50K+</div>
+                                <div class="stat-name">Users</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value">99.9%</div>
+                                <div class="stat-name">Uptime</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value">120+</div>
+                                <div class="stat-name">Countries</div>
+                            </div>
+                        </div>
+                        
+                        <div class="content-features" id="contentFeatures">
+                            <!-- Features will be populated by JavaScript -->
+                        </div>
+                        
+                        <div class="content-actions">
+                            <button class="btn-action primary" id="tryNowBtn">
+                                <i class="fab fa-google"></i>
+                                <span>Try Now</span>
+                            </button>
+                            <button class="btn-action secondary">
+                                <i class="fas fa-bookmark"></i>
+                                <span>Learn More</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Showcase -->
+    <section class="features-showcase">
+        <div class="container">
+            <div class="section-header">
+                <h2>Why Choose Canyon?</h2>
+                <p>Discover the advantages of our innovative approach</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-showcase-card">
+                    <div class="feature-showcase-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <h3>Intuitive</h3>
+                    <p>Our end to end process provides insights into each step of the journey from customer quote to revenue.</p>
+                    <div class="feature-link">
+                        <span>Learn more</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+                
+                <div class="feature-showcase-card">
+                    <div class="feature-showcase-icon">
+                        <i class="fas fa-expand-arrows-alt"></i>
+                    </div>
+                    <h3>Scalable</h3>
+                    <p>Easily and efficiently accommodate large workflows without compromising usability.</p>
+                    <div class="feature-link">
+                        <span>Learn more</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+                
+                <div class="feature-showcase-card">
+                    <div class="feature-showcase-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Modern</h3>
+                    <p>Benefit from Canyon's intelligent, homegrown solution for your business's needs.</p>
+                    <div class="feature-link">
+                        <span>Learn more</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Get Started?</h2>
+                <p>Join thousands of companies who have transformed their workflow with our platform</p>
+                <button class="cta-button" id="ctaSignUp">
+                    <i class="fab fa-google"></i>
+                    <span>Sign Up with Google</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <div class="logo-icon">
+                            <i class="fas fa-mountain-sun"></i>
+                        </div>
+                        <span>Canyon</span>
+                    </div>
+                    <p>Transform weeks of back-and-forth into decisive action. Get your customers exactly what they need, when they need it.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-discord"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Product</h4>
+                        <a href="#">Features</a>
+                        <a href="#">Pricing</a>
+                        <a href="#">Documentation</a>
+                        <a href="#">API Reference</a>
+                        <a href="#">Changelog</a>
+                    </div>
+                    
+                    <div class="footer-column">
+                        <h4>Company</h4>
+                        <a href="#">About Us</a>
+                        <a href="#">Blog</a>
+                        <a href="#">Careers</a>
+                        <a href="#">Contact</a>
+                        <a href="#">Press Kit</a>
+                    </div>
+                    
+                    <div class="footer-column">
+                        <h4>Support</h4>
+                        <a href="#">Help Center</a>
+                        <a href="#">Community</a>
+                        <a href="#">Status Page</a>
+                        <a href="#">Security</a>
+                        <a href="#">Privacy Policy</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Canyon. All rights reserved.</p>
+                <div class="footer-legal">
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/js/script.js"></script>
+</body>
+</html>
