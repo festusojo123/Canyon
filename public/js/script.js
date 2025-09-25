@@ -544,7 +544,7 @@ class CanyonApp {
             if (notification.parentElement) {
                 notification.remove();
             }
-        }, 3000);
+        }, 8080);
     }
 }
 
