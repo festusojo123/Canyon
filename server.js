@@ -130,20 +130,152 @@ app.get('/api/user', (req, res) => {
     }
 });
 
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`🔐 Google OAuth configured: ${!!process.env.GOOGLE_CLIENT_ID}`);
+});
+
+// Mock data for quotes
+const mockQuotes = [
+    {
+        id: 'Q-2025-001',
+        customer: 'Acme Corporation',
+        amount: 125000,
+        discount: 12,
+        status: 'pending',
+        createdBy: 'John Smith (AE)',
+        createdDate: '2025-01-15',
+        products: ['Enterprise License', 'Premium Support'],
+        currentStep: 'deal-desk',
+        workflow: [
+            { id: 'ae', name: 'Account Executive', status: 'completed', assignee: 'John Smith', completedDate: '2025-01-15' },
+            { id: 'deal-desk', name: 'Deal Desk', status: 'pending', assignee: 'Sarah Johnson', completedDate: null },
+            { id: 'customer', name: 'Customer', status: 'waiting', assignee: 'Acme Corporation', completedDate: null }
+        ]
+    },
+    {
+        id: 'Q-2025-002',
+        customer: 'TechStart Inc.',
+        amount: 75000,
+        discount: 25,
+        status: 'pending',
+        createdBy: 'Mike Davis (AE)',
+        createdDate: '2025-01-14',
+        products: ['Standard License', 'Basic Support'],
+        currentStep: 'cro',
+        workflow: [
+            { id: 'ae', name: 'Account Executive', status: 'completed', assignee: 'Mike Davis', completedDate: '2025-01-14' },
+            { id: 'deal-desk', name: 'Deal Desk', status: 'completed', assignee: 'Sarah Johnson', completedDate: '2025-01-15' },
+            { id: 'cro', name: 'Chief Revenue Officer', status: 'pending', assignee: 'Robert Chen', completedDate: null },
+            { id: 'legal', name: 'Legal', status: 'waiting', assignee: 'Legal Team', completedDate: null },
+            { id: 'customer', name: 'Customer', status: 'waiting', assignee: 'TechStart Inc.', completedDate: null }
+        ]
+    },
+    {
+        id: 'Q-2025-003',
+        customer: 'Global Solutions Ltd.',
+        amount: 250000,
+        discount: 45,
+        status: 'pending',
+        createdBy: 'Lisa Wang (AE)',
+        createdDate: '2025-01-13',
+        products: ['Enterprise License', 'Premium Support', 'Custom Integration'],
+        currentStep: 'finance',
+        workflow: [
+            { id: 'ae', name: 'Account Executive', status: 'completed', assignee: 'Lisa Wang', completedDate: '2025-01-13' },
+            { id: 'deal-desk', name: 'Deal Desk', status: 'completed', assignee: 'Sarah Johnson', completedDate: '2025-01-13' },
+            { id: 'cro', name: 'Chief Revenue Officer', status: 'completed', assignee: 'Robert Chen', completedDate: '2025-01-14' },
+            { id: 'legal', name: 'Legal', status: 'completed', assignee: 'Legal Team', completedDate: '2025-01-14' },
+            { id: 'finance', name: 'Finance', status: 'pending', assignee: 'Finance Team', completedDate: null },
+            { id: 'customer', name: 'Customer', status: 'waiting', assignee: 'Global Solutions Ltd.', completedDate: null }
+        ]
+    }
+];
+
+// Available workflow personas
+const workflowPersonas = [
+    {
+        id: 'ae',
+        name: 'Account Executive',
+        description: 'Creates the quote',
+        icon: 'fas fa-user-tie',
+        color: '#3b82f6'
+    },
+    {
+        id: 'deal-desk',
+        name: 'Deal Desk',
+        description: 'Approves quotes with modest discounts (up to 15%)',
+        icon: 'fas fa-handshake',
+        color: '#10b981'
+    },
+    {
+        id: 'cro',
+        name: 'Chief Revenue Officer',
+        description: 'Approves quotes with larger discounts (15–40%)',
+        icon: 'fas fa-crown',
+        color: '#f59e0b'
+    },
+    {
+        id: 'legal',
+        name: 'Legal',
+        description: 'Reviews quotes for contractual language',
+        icon: 'fas fa-gavel',
+        color: '#8b5cf6'
+    },
+    {
+        id: 'finance',
+        name: 'Finance',
+        description: 'Approves edge-case deals (discounts >40% or bespoke payment terms)',
+        icon: 'fas fa-calculator',
+        color: '#ef4444'
+    },
+    {
+        id: 'customer',
+        name: 'Customer',
+        description: 'Receives the final approved quote',
+        icon: 'fas fa-building',
+        color: '#6b7280'
+    }
+];
+
+// API endpoint to get quotes
+app.get('/api/quotes', isAuthenticated, (req, res) => {
+    res.json(mockQuotes);
+});
+
+// API endpoint to get workflow personas
+app.get('/api/workflow-personas', isAuthenticated, (req, res) => {
+    res.json(workflowPersonas);
+});
+
+// API endpoint to update quote workflow
+app.put('/api/quotes/:id/workflow', isAuthenticated, (req, res) => {
+    const quoteId = req.params.id;
+    const { workflow } = req.body;
+    
+    const quoteIndex = mockQuotes.findIndex(q => q.id === quoteId);
+    if (quoteIndex === -1) {
+        return res.status(404).json({ error: 'Quote not found' });
+    }
+    
+    mockQuotes[quoteIndex].workflow = workflow;
+    res.json({ success: true, quote: mockQuotes[quoteIndex] });
+});
+
 // API endpoints for tab content
 app.get('/api/content/:tab', (req, res) => {
     const tabContent = {
         home: {
-            image: '🏠',  // Changed from 'icon' to 'image'
+            image: '🏠',
             title: 'Overview',
             subtitle: 'Everything you need in one place',
-            content: 'Our comprehensive platform brings together powerful tools, intuitive design, and seamless integrations.',  // Changed from 'text' to 'content'
-            features: [  // Added features array
+            content: 'Our comprehensive platform brings together powerful tools, intuitive design, and seamless integrations.',
+            features: [
                 { icon: 'fas fa-rocket', text: 'Lightning Fast Performance' },
                 { icon: 'fas fa-shield-alt', text: 'Enterprise Security' },
                 { icon: 'fas fa-users', text: 'Team Collaboration' }
             ],
-            stats: {  // Added stats object
+            stats: {
                 users: '50K+',
                 uptime: '99.9%',
                 countries: '120+'
@@ -151,19 +283,21 @@ app.get('/api/content/:tab', (req, res) => {
         },
         quotes: {
             image: '📋',
-            title: 'Quotes',
-            subtitle: 'Advanced quote capabilities',
-            content: 'Create, manage, and track quotes with our powerful quote management system.',
+            title: 'Quotes Management',
+            subtitle: 'Advanced quote capabilities with approval workflows',
+            content: 'Create, manage, and track quotes with our powerful quote management system featuring customizable approval workflows.',
             features: [
-                { icon: 'fas fa-file-invoice', text: 'Professional Templates' },
-                { icon: 'fas fa-calculator', text: 'Smart Pricing Engine' },
-                { icon: 'fas fa-clock', text: 'Quick Generation' }
+                { icon: 'fas fa-route', text: 'Custom Approval Workflows' },
+                { icon: 'fas fa-arrows-alt', text: 'Drag & Drop Builder' },
+                { icon: 'fas fa-users-cog', text: 'Role-Based Approvals' },
+                { icon: 'fas fa-clock', text: 'Real-time Tracking' }
             ],
             stats: {
                 quotes: '10K+',
                 accuracy: '99.5%',
                 savings: '40%'
-            }
+            },
+            isQuotesRedirect: true // Handle redirect
         },
         createQuotes: {
             image: '✨',
@@ -226,7 +360,7 @@ app.get('/api/content/:tab', (req, res) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`🔐 Google OAuth configured: ${!!process.env.GOOGLE_CLIENT_ID}`);
+// Add this route to your server.js
+app.get('/quotes', isAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'quotes.html'));
 });

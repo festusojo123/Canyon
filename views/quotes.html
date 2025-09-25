@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quotes Management - Canyon</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/quotes.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="description" content="Manage quotes and approval workflows with Canyon's powerful quote management system.">
+</head>
+<body class="quotes-page">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <div class="logo-icon">
+                    <i class="fas fa-mountain-sun"></i>
+                </div>
+                <span class="logo-text">Canyon</span>
+            </div>
+            <div class="nav-menu">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/dashboard" class="nav-link">Dashboard</a>
+                <a href="/quotes" class="nav-link active">Quotes</a>
+                <button class="nav-cta" id="userMenu">
+                    <i class="fas fa-user"></i>
+                    <span id="userName">Loading...</span>
+                </button>
+            </div>
+            <div class="mobile-menu-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="quotes-main">
+        <div class="quotes-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="header-content">
+                    <div class="header-text">
+                        <h1>
+                            <i class="fas fa-file-invoice"></i>
+                            Quotes Management
+                        </h1>
+                        <p>Create, manage, and track quotes with customizable approval workflows</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-primary" id="createNewQuote">
+                            <i class="fas fa-plus"></i>
+                            Create New Quote
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalQuotes">-</div>
+                            <div class="stat-label">Total Quotes</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon pending">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="pendingQuotes">-</div>
+                            <div class="stat-label">Pending Approval</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="approvedQuotes">-</div>
+                            <div class="stat-label">Approved</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon amount">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalValue">-</div>
+                            <div class="stat-label">Total Value</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters and Search -->
+            <div class="quotes-controls">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchQuotes" placeholder="Search quotes by ID, customer, or amount...">
+                </div>
+                <div class="filter-controls">
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                    <select id="sortBy" class="filter-select">
+                        <option value="date-desc">Newest First</option>
+                        <option value="date-asc">Oldest First</option>
+                        <option value="amount-desc">Highest Amount</option>
+                        <option value="amount-asc">Lowest Amount</option>
+                        <option value="customer">Customer A-Z</option>
+                    </select>
+                    <button class="btn-secondary" id="refreshQuotes">
+                        <i class="fas fa-refresh"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quotes List -->
+            <div class="quotes-content">
+                <div class="quotes-list" id="quotesList">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Loading quotes...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="quotes-footer">
+        <div class="container">
+            <p>&copy; 2025 Canyon. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/quotes.js"></script>
+</body>
+</html>

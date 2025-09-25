@@ -4,12 +4,19 @@ class CanyonApp {
         this.setupGoogleSSO();
     }
 
-    init() {
+    async init() {
         this.setupElements();
         this.setupEventListeners();
-        this.updateScrollIndicator();
-        this.setupIntersectionObserver();
-        this.loadInitialContent();
+        
+        console.log('Initializing quotes app...'); // Debug log
+        
+        const isAuthenticated = await this.checkAuthentication();
+        if (!isAuthenticated) {
+            return; // Stop initialization if not authenticated
+        }
+        
+        await this.loadQuotes();
+        this.updateStats();
     }
 
     setupElements() {
@@ -150,6 +157,442 @@ class CanyonApp {
             const featureElement = this.createFeatureElement(feature);
             this.contentFeatures.appendChild(featureElement);
         });
+
+        // Special handling for quotes tab
+        if (data.isQuotesTab) {
+            this.handleQuotesTab();
+        }
+
+        // Special handling for quotes redirect
+        if (data.isQuotesRedirect) {
+            this.handleQuotesRedirect();
+        }
+    }
+
+    async handleQuotesTab() {
+        try {
+            // Check authentication first
+            const authResponse = await fetch('/api/user');
+            const authData = await authResponse.json();
+            
+            if (authData.authenticated) {
+                // User is authenticated, load full quotes interface
+                this.loadQuotesInterface();
+            } else {
+                // User not authenticated, show preview with sign-in prompt
+                this.showQuotesPreview();
+            }
+        } catch (error) {
+            console.error('Error checking auth for quotes:', error);
+            this.showQuotesPreview();
+        }
+    }
+
+    showQuotesPreview() {
+        const quotesContainer = document.createElement('div');
+        quotesContainer.className = 'quotes-preview';
+        quotesContainer.innerHTML = `
+            <div class="preview-content">
+                <div class="preview-header">
+                    <i class="fas fa-eye"></i>
+                    <h3>Quotes Management Preview</h3>
+                    <p>Sign in to access the full quotes management system</p>
+                </div>
+                
+                <div class="preview-features">
+                    <div class="preview-feature">
+                        <i class="fas fa-route"></i>
+                        <span>Custom Approval Workflows</span>
+                    </div>
+                    <div class="preview-feature">
+                        <i class="fas fa-users-cog"></i>
+                        <span>Role-Based Approvals</span>
+                    </div>
+                    <div class="preview-feature">
+                        <i class="fas fa-arrows-alt"></i>
+                        <span>Drag & Drop Workflow Builder</span>
+                    </div>
+                    <div class="preview-feature">
+                        <i class="fas fa-clock"></i>
+                        <span>Real-time Status Tracking</span>
+                    </div>
+                </div>
+
+                <div class="preview-mockup">
+                    <div class="mockup-quote-card">
+                        <div class="mockup-header">
+                            <div>
+                                <strong>Q-2025-001</strong>
+                                <div class="mockup-customer">Acme Corporation</div>
+                            </div>
+                            <div class="mockup-details">
+                                <span class="mockup-amount">$125,000</span>
+                                <span class="mockup-discount">12% discount</span>
+                            </div>
+                        </div>
+                        <div class="mockup-workflow">
+                            <div class="mockup-step completed">
+                                <i class="fas fa-check"></i>
+                                <span>AE</span>
+                            </div>
+                            <div class="mockup-connector"></div>
+                            <div class="mockup-step pending">
+                                <i class="fas fa-clock"></i>
+                                <span>Deal Desk</span>
+                            </div>
+                            <div class="mockup-connector"></div>
+                            <div class="mockup-step waiting">
+                                <i class="fas fa-circle"></i>
+                                <span>Customer</span>
+                            </div>
+                        </div>
+                        <div class="mockup-actions">
+                            <button class="mockup-btn secondary" disabled>
+                                <i class="fas fa-edit"></i>
+                                Edit Workflow
+                            </button>
+                            <button class="mockup-btn primary" disabled>
+                                <i class="fas fa-eye"></i>
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-workflow-builder">
+                        <h4>Drag & Drop Workflow Builder</h4>
+                        <div class="builder-preview">
+                            <div class="builder-personas">
+                                <div class="builder-persona">
+                                    <i class="fas fa-user-tie" style="color: #3b82f6;"></i>
+                                    <span>AE</span>
+                                </div>
+                                <div class="builder-persona">
+                                    <i class="fas fa-handshake" style="color: #10b981;"></i>
+                                    <span>Deal Desk</span>
+                                </div>
+                                <div class="builder-persona">
+                                    <i class="fas fa-crown" style="color: #f59e0b;"></i>
+                                    <span>CRO</span>
+                                </div>
+                            </div>
+                            <div class="builder-arrow">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                            <div class="builder-workflow">
+                                <div class="builder-drop-zone">
+                                    Drag personas here to build workflow
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preview-cta">
+                    <button class="btn-primary" onclick="app.initiateGoogleSSO()">
+                        <i class="fab fa-google"></i>
+                        Sign In to Access Full Quotes System
+                    </button>
+                    <p>Experience the complete quote management and approval workflow system</p>
+                </div>
+            </div>
+        `;
+
+        // Replace the features section with the preview
+        this.contentFeatures.innerHTML = '';
+        this.contentFeatures.appendChild(quotesContainer);
+    }
+
+    // Update the loadQuotes method to handle authentication better
+    async loadQuotes() {
+        try {
+            const response = await fetch('/api/quotes');
+            if (!response.ok) {
+                if (response.status === 401) {
+                    // Redirect to login or show auth required message
+                    document.getElementById('quotesList').innerHTML = `
+                        <div class="auth-required">
+                            <div class="auth-message">
+                                <i class="fas fa-lock"></i>
+                                <h3>Session Expired</h3>
+                                <p>Please sign in again to access quotes</p>
+                                <button class="btn-primary" onclick="app.initiateGoogleSSO()">
+                                    <i class="fab fa-google"></i>
+                                    Sign In with Google
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const quotes = await response.json();
+            
+            const quotesList = document.getElementById('quotesList');
+            quotesList.innerHTML = '';
+
+            if (quotes.length === 0) {
+                quotesList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-file-invoice"></i>
+                        <h3>No Quotes Found</h3>
+                        <p>Create your first quote to get started</p>
+                        <button class="btn-primary" onclick="app.createNewQuote()">
+                            <i class="fas fa-plus"></i>
+                            Create New Quote
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            quotes.forEach(quote => {
+                const quoteCard = this.createQuoteCard(quote);
+                quotesList.appendChild(quoteCard);
+            });
+
+        } catch (error) {
+            console.error('Error loading quotes:', error);
+            document.getElementById('quotesList').innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error loading quotes: ${error.message}</p>
+                    <button class="btn-secondary" onclick="app.loadQuotes()">
+                        <i class="fas fa-refresh"></i>
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    async handleQuotesTab() {
+        try {
+            // Check authentication first
+            const authResponse = await fetch('/api/user');
+            const authData = await authResponse.json();
+            
+            if (authData.authenticated) {
+                // User is authenticated, load full quotes interface
+                this.loadQuotesInterface();
+            } else {
+                // User not authenticated, show preview with sign-in prompt
+                this.showQuotesPreview();
+            }
+        } catch (error) {
+            console.error('Error checking auth for quotes:', error);
+            this.showQuotesPreview();
+        }
+    }
+
+    async handleQuotesRedirect() {
+        // Check if user is authenticated
+        try {
+            const authResponse = await fetch('/api/user');
+            const authData = await authResponse.json();
+            
+            if (authData.authenticated) {
+                // Add a "Go to Quotes" button in the actions
+                this.contentFeatures.innerHTML += `
+                    <div class="quotes-redirect-cta">
+                        <button class="btn-primary btn-large" onclick="window.location.href='/quotes'">
+                            <i class="fas fa-arrow-right"></i>
+                            Go to Quotes Management
+                    </div>
+                `;
+            } else {
+                // Show sign-in prompt
+                this.contentFeatures.innerHTML += `
+                    <div class="quotes-signin-cta">
+                        <button class="btn-primary btn-large" onclick="app.initiateGoogleSSO()">
+                            <i class="fab fa-google"></i>
+                            Sign In to Access Quotes
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error checking auth for quotes:', error);
+        }
+    }
+
+    showQuotesPreview() {
+        const quotesContainer = document.createElement('div');
+        quotesContainer.className = 'quotes-preview';
+        quotesContainer.innerHTML = `
+            <div class="preview-content">
+                <div class="preview-header">
+                    <i class="fas fa-eye"></i>
+                    <h3>Quotes Management Preview</h3>
+                    <p>Sign in to access the full quotes management system</p>
+                </div>
+                
+                <div class="preview-features">
+                    <div class="preview-feature">
+                        <i class="fas fa-route"></i>
+                        <span>Custom Approval Workflows</span>
+                    </div>
+                    <div class="preview-feature">
+                        <i class="fas fa-users-cog"></i>
+                        <span>Role-Based Approvals</span>
+                    </div>
+                    <div class="preview-feature">
+                        <i class="fas fa-arrows-alt"></i>
+                        <span>Drag & Drop Workflow Builder</span>
+                    </div>
+                    <div class="preview-feature">
+                        <i class="fas fa-clock"></i>
+                        <span>Real-time Status Tracking</span>
+                    </div>
+                </div>
+
+                <div class="preview-mockup">
+                    <div class="mockup-quote-card">
+                        <div class="mockup-header">
+                            <div>
+                                <strong>Q-2025-001</strong>
+                                <div class="mockup-customer">Acme Corporation</div>
+                            </div>
+                            <div class="mockup-details">
+                                <span class="mockup-amount">$125,000</span>
+                                <span class="mockup-discount">12% discount</span>
+                            </div>
+                        </div>
+                        <div class="mockup-workflow">
+                            <div class="mockup-step completed">
+                                <i class="fas fa-check"></i>
+                                <span>AE</span>
+                            </div>
+                            <div class="mockup-connector"></div>
+                            <div class="mockup-step pending">
+                                <i class="fas fa-clock"></i>
+                                <span>Deal Desk</span>
+                            </div>
+                            <div class="mockup-connector"></div>
+                            <div class="mockup-step waiting">
+                                <i class="fas fa-circle"></i>
+                                <span>Customer</span>
+                            </div>
+                        </div>
+                        <div class="mockup-actions">
+                            <button class="mockup-btn secondary" disabled>
+                                <i class="fas fa-edit"></i>
+                                Edit Workflow
+                            </button>
+                            <button class="mockup-btn primary" disabled>
+                                <i class="fas fa-eye"></i>
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-workflow-builder">
+                        <h4>Drag & Drop Workflow Builder</h4>
+                        <div class="builder-preview">
+                            <div class="builder-personas">
+                                <div class="builder-persona">
+                                    <i class="fas fa-user-tie" style="color: #3b82f6;"></i>
+                                    <span>AE</span>
+                                </div>
+                                <div class="builder-persona">
+                                    <i class="fas fa-handshake" style="color: #10b981;"></i>
+                                    <span>Deal Desk</span>
+                                </div>
+                                <div class="builder-persona">
+                                    <i class="fas fa-crown" style="color: #f59e0b;"></i>
+                                    <span>CRO</span>
+                                </div>
+                            </div>
+                            <div class="builder-arrow">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                            <div class="builder-workflow">
+                                <div class="builder-drop-zone">
+                                    Drag personas here to build workflow
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preview-cta">
+                    <button class="btn-primary" onclick="app.initiateGoogleSSO()">
+                        <i class="fab fa-google"></i>
+                        Sign In to Access Full Quotes System
+                    </button>
+                    <p>Experience the complete quote management and approval workflow system</p>
+                </div>
+            </div>
+        `;
+
+        // Replace the features section with the preview
+        this.contentFeatures.innerHTML = '';
+        this.contentFeatures.appendChild(quotesContainer);
+    }
+
+    // Update the loadQuotes method to handle authentication better
+    async loadQuotes() {
+        try {
+            const response = await fetch('/api/quotes');
+            if (!response.ok) {
+                if (response.status === 401) {
+                    // Redirect to login or show auth required message
+                    document.getElementById('quotesList').innerHTML = `
+                        <div class="auth-required">
+                            <div class="auth-message">
+                                <i class="fas fa-lock"></i>
+                                <h3>Session Expired</h3>
+                                <p>Please sign in again to access quotes</p>
+                                <button class="btn-primary" onclick="app.initiateGoogleSSO()">
+                                    <i class="fab fa-google"></i>
+                                    Sign In with Google
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const quotes = await response.json();
+            
+            const quotesList = document.getElementById('quotesList');
+            quotesList.innerHTML = '';
+
+            if (quotes.length === 0) {
+                quotesList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-file-invoice"></i>
+                        <h3>No Quotes Found</h3>
+                        <p>Create your first quote to get started</p>
+                        <button class="btn-primary" onclick="app.createNewQuote()">
+                            <i class="fas fa-plus"></i>
+                            Create New Quote
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            quotes.forEach(quote => {
+                const quoteCard = this.createQuoteCard(quote);
+                quotesList.appendChild(quoteCard);
+            });
+
+        } catch (error) {
+            console.error('Error loading quotes:', error);
+            document.getElementById('quotesList').innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error loading quotes: ${error.message}</p>
+                    <button class="btn-secondary" onclick="app.loadQuotes()">
+                        <i class="fas fa-refresh"></i>
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
     }
 
     updateStats(stats) {
@@ -545,6 +988,402 @@ class CanyonApp {
                 notification.remove();
             }
         }, 8080);
+    }
+
+    async loadQuotesInterface() {
+        try {
+            // Create quotes interface container
+            const quotesContainer = document.createElement('div');
+            quotesContainer.className = 'quotes-interface';
+            quotesContainer.innerHTML = `
+                <div class="quotes-header">
+                    <div class="quotes-actions">
+                        <button class="btn-primary" id="createNewQuote">
+                            <i class="fas fa-plus"></i>
+                            Create New Quote
+                        </button>
+                        <div class="quotes-filters">
+                            <select id="statusFilter" class="filter-select">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="quotes-list" id="quotesList">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Loading quotes...
+                    </div>
+                </div>
+            `;
+
+            // Replace content features with quotes interface
+            this.contentFeatures.innerHTML = '';
+            this.contentFeatures.appendChild(quotesContainer);
+
+            // Load quotes data
+            await this.loadQuotes();
+
+            // Setup event listeners
+            this.setupQuotesEventListeners();
+
+        } catch (error) {
+            console.error('Error loading quotes interface:', error);
+        }
+    }
+
+    async loadQuotes() {
+        try {
+            const response = await fetch('/api/quotes');
+            const quotes = await response.json();
+            
+            const quotesList = document.getElementById('quotesList');
+            quotesList.innerHTML = '';
+
+            quotes.forEach(quote => {
+                const quoteCard = this.createQuoteCard(quote);
+                quotesList.appendChild(quoteCard);
+            });
+
+        } catch (error) {
+            console.error('Error loading quotes:', error);
+            document.getElementById('quotesList').innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Error loading quotes. Please try again.
+                </div>
+            `;
+        }
+    }
+
+    createQuoteCard(quote) {
+        const card = document.createElement('div');
+        card.className = 'quote-card';
+        card.innerHTML = `
+            <div class="quote-header">
+                <div class="quote-info">
+                    <h3 class="quote-id">${quote.id}</h3>
+                    <p class="quote-customer">${quote.customer}</p>
+                    <div class="quote-meta">
+                        <span class="quote-amount">$${quote.amount.toLocaleString()}</span>
+                        <span class="quote-discount">${quote.discount}% discount</span>
+                        <span class="quote-date">${new Date(quote.createdDate).toLocaleDateString()}</span>
+                    </div>
+                </div>
+                <div class="quote-actions">
+                    <button class="btn-secondary btn-sm" onclick="app.editWorkflow('${quote.id}')">
+                        <i class="fas fa-edit"></i>
+                        Edit Workflow
+                    </button>
+                    <button class="btn-primary btn-sm" onclick="app.viewQuote('${quote.id}')">
+                        <i class="fas fa-eye"></i>
+                        View
+                    </button>
+                </div>
+            </div>
+            <div class="quote-workflow">
+                <div class="workflow-progress">
+                    ${this.createWorkflowProgress(quote.workflow, quote.currentStep)}
+                </div>
+            </div>
+            <div class="quote-details">
+                <div class="quote-products">
+                    <strong>Products:</strong> ${quote.products.join(', ')}
+                </div>
+                <div class="quote-creator">
+                    <strong>Created by:</strong> ${quote.createdBy}
+                </div>
+            </div>
+        `;
+        return card;
+    }
+
+    createWorkflowProgress(workflow, currentStep) {
+        return workflow.map((step, index) => {
+            const isActive = step.id === currentStep;
+            const isCompleted = step.status === 'completed';
+            const isPending = step.status === 'pending';
+            
+            let statusClass = 'waiting';
+            if (isCompleted) statusClass = 'completed';
+            else if (isPending) statusClass = 'pending';
+            else if (isActive) statusClass = 'active';
+
+            return `
+                <div class="workflow-step ${statusClass}" data-step="${step.id}">
+                    <div class="step-icon">
+                        ${isCompleted ? '<i class="fas fa-check"></i>' : 
+                        isPending ? '<i class="fas fa-clock"></i>' : 
+                        '<i class="fas fa-circle"></i>'}
+                    </div>
+                    <div class="step-info">
+                        <div class="step-name">${step.name}</div>
+                        <div class="step-assignee">${step.assignee}</div>
+                        ${step.completedDate ? `<div class="step-date">Completed: ${new Date(step.completedDate).toLocaleDateString()}</div>` : ''}
+                    </div>
+                    ${index < workflow.length - 1 ? '<div class="step-connector"></div>' : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    setupQuotesEventListeners() {
+        // Status filter
+        const statusFilter = document.getElementById('statusFilter');
+        if (statusFilter) {
+            statusFilter.addEventListener('change', (e) => {
+                this.filterQuotes(e.target.value);
+            });
+        }
+
+        // Create new quote button
+        const createNewQuote = document.getElementById('createNewQuote');
+        if (createNewQuote) {
+            createNewQuote.addEventListener('click', () => {
+                this.createNewQuote();
+            });
+        }
+    }
+
+    filterQuotes(status) {
+        const quoteCards = document.querySelectorAll('.quote-card');
+        quoteCards.forEach(card => {
+            if (!status) {
+                card.style.display = 'block';
+            } else {
+                // This would need to be implemented based on quote status
+                // For now, show all cards
+                card.style.display = 'block';
+            }
+        });
+    }
+
+    editWorkflow(quoteId) {
+        this.showWorkflowEditor(quoteId);
+    }
+
+    async showWorkflowEditor(quoteId) {
+        try {
+            // Fetch current quote data
+            const quotesResponse = await fetch('/api/quotes');
+            const quotes = await quotesResponse.json();
+            const quote = quotes.find(q => q.id === quoteId);
+
+            // Fetch available personas
+            const personasResponse = await fetch('/api/workflow-personas');
+            const personas = await personasResponse.json();
+
+            if (!quote) {
+                throw new Error('Quote not found');
+            }
+
+            // Create modal
+            const modal = document.createElement('div');
+            modal.className = 'workflow-modal';
+            modal.innerHTML = `
+                <div class="modal-overlay" onclick="this.parentElement.remove()"></div>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Edit Workflow - ${quote.id}</h3>
+                        <button class="modal-close" onclick="this.closest('.workflow-modal').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="workflow-editor">
+                            <div class="personas-panel">
+                                <h4>Available Personas</h4>
+                                <div class="personas-list" id="personasList">
+                                    ${personas.map(persona => `
+                                        <div class="persona-item" draggable="true" data-persona-id="${persona.id}">
+                                            <div class="persona-icon" style="color: ${persona.color}">
+                                                <i class="${persona.icon}"></i>
+                                            </div>
+                                            <div class="persona-info">
+                                                <div class="persona-name">${persona.name}</div>
+                                                <div class="persona-description">${persona.description}</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="workflow-builder">
+                                <h4>Workflow Steps</h4>
+                                <div class="workflow-steps" id="workflowSteps">
+                                    ${quote.workflow.map((step, index) => `
+                                        <div class="workflow-step-editor" data-step-id="${step.id}">
+                                            <div class="step-handle">
+                                                <i class="fas fa-grip-vertical"></i>
+                                            </div>
+                                            <div class="step-content">
+                                                <div class="step-name">${step.name}</div>
+                                                <div class="step-assignee">${step.assignee}</div>
+                                            </div>
+                                            <div class="step-actions">
+                                                <button class="btn-danger btn-sm" onclick="this.closest('.workflow-step-editor').remove()">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <div class="workflow-drop-zone" id="workflowDropZone">
+                                    <i class="fas fa-plus"></i>
+                                    Drag personas here to add workflow steps
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-secondary" onclick="this.closest('.workflow-modal').remove()">
+                            Cancel
+                        </button>
+                        <button class="btn-primary" onclick="app.saveWorkflow('${quoteId}')">
+                            Save Workflow
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            this.setupWorkflowDragAndDrop();
+
+        } catch (error) {
+            console.error('Error showing workflow editor:', error);
+            alert('Error loading workflow editor. Please try again.');
+        }
+    }
+
+    async addWorkflowStep(personaId) {
+        try {
+            const personasResponse = await fetch('/api/workflow-personas');
+            const personas = await personasResponse.json();
+            const persona = personas.find(p => p.id === personaId);
+
+            if (!persona) return;
+
+            const workflowSteps = document.getElementById('workflowSteps');
+            const stepElement = document.createElement('div');
+            stepElement.className = 'workflow-step-editor';
+            stepElement.dataset.stepId = persona.id;
+            stepElement.innerHTML = `
+                <div class="step-handle">
+                    <i class="fas fa-grip-vertical"></i>
+                </div>
+                <div class="step-content">
+                    <div class="step-name">${persona.name}</div>
+                    <div class="step-assignee">Unassigned</div>
+                </div>
+                <div class="step-actions">
+                    <button class="btn-danger btn-sm" onclick="this.closest('.workflow-step-editor').remove()">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+
+            workflowSteps.appendChild(stepElement);
+
+        } catch (error) {
+            console.error('Error adding workflow step:', error);
+        }
+    }
+
+    setupWorkflowSorting() {
+        const workflowSteps = document.getElementById('workflowSteps');
+        if (!workflowSteps) return;
+
+        let draggedElement = null;
+
+        workflowSteps.addEventListener('dragstart', (e) => {
+            if (e.target.closest('.workflow-step-editor')) {
+                draggedElement = e.target.closest('.workflow-step-editor');
+                draggedElement.classList.add('dragging');
+            }
+        });
+
+        workflowSteps.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const afterElement = this.getDragAfterElement(workflowSteps, e.clientY);
+            if (afterElement == null) {
+                workflowSteps.appendChild(draggedElement);
+            } else {
+                workflowSteps.insertBefore(draggedElement, afterElement);
+            }
+        });
+
+        workflowSteps.addEventListener('dragend', () => {
+            if (draggedElement) {
+                draggedElement.classList.remove('dragging');
+                draggedElement = null;
+            }
+        });
+    }
+
+    getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.workflow-step-editor:not(.dragging)')];
+        
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    async saveWorkflow(quoteId) {
+        try {
+            const workflowSteps = document.querySelectorAll('.workflow-step-editor');
+            const workflow = Array.from(workflowSteps).map((step, index) => ({
+                id: step.dataset.stepId,
+                name: step.querySelector('.step-name').textContent,
+                status: index === 0 ? 'completed' : 'waiting',
+                assignee: step.querySelector('.step-assignee').textContent,
+                completedDate: index === 0 ? new Date().toISOString().split('T')[0] : null
+            }));
+
+            const response = await fetch(`/api/quotes/${quoteId}/workflow`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ workflow })
+            });
+
+            if (response.ok) {
+                // Close modal
+                document.querySelector('.workflow-modal').remove();
+                
+                // Reload quotes
+                await this.loadQuotes();
+                
+                this.showSuccessNotification('Workflow updated successfully!');
+            } else {
+                throw new Error('Failed to save workflow');
+            }
+
+        } catch (error) {
+            console.error('Error saving workflow:', error);
+            alert('Error saving workflow. Please try again.');
+        }
+    }
+
+    viewQuote(quoteId) {
+        // This would open a detailed quote view
+        console.log('Viewing quote:', quoteId);
+        alert(`Quote ${quoteId} details would open here.`);
+    }
+
+    createNewQuote() {
+        // This would open the quote creation interface
+        console.log('Creating new quote');
+        alert('New quote creation interface would open here.');
     }
 }
 
