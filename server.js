@@ -135,7 +135,7 @@ app.get('/api/content/:tab', (req, res) => {
     const tabContent = {
         home: {
             image: '🏠',  // Changed from 'icon' to 'image'
-            title: 'Platform Overview',
+            title: 'Overview',
             subtitle: 'Everything you need in one place',
             content: 'Our comprehensive platform brings together powerful tools, intuitive design, and seamless integrations.',  // Changed from 'text' to 'content'
             features: [  // Added features array
@@ -151,7 +151,7 @@ app.get('/api/content/:tab', (req, res) => {
         },
         quotes: {
             image: '📋',
-            title: 'Quote Management',
+            title: 'Quotes',
             subtitle: 'Advanced quote capabilities',
             content: 'Create, manage, and track quotes with our powerful quote management system.',
             features: [
