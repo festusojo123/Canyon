@@ -10,31 +10,8 @@ class CanyonApp {
         
         console.log('Initializing quotes app...'); // Debug log
         
-        const isAuthenticated = await this.checkAuthentication();
-        if (!isAuthenticated) {
-            return; // Stop initialization if not authenticated
-        }
-        
         await this.loadQuotes();
         this.updateStats();
-    }
-
-    async checkAuthentication() {
-        try {
-            const response = await fetch('/api/user');
-            const data = await response.json();
-            
-            if (!data.authenticated) {
-                window.location.href = '/?error=unauthorized';
-                return;
-            }
-            
-            this.userName.textContent = data.user.firstName || data.user.name;
-            
-        } catch (error) {
-            console.error('Error checking authentication:', error);
-            window.location.href = '/?error=auth_error';
-        }
     }
 
     setupElements() {
