@@ -1337,43 +1337,6 @@ class CanyonApp {
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 
-    async saveWorkflow(quoteId) {
-        try {
-            const workflowSteps = document.querySelectorAll('.workflow-step-editor');
-            const workflow = Array.from(workflowSteps).map((step, index) => ({
-                id: step.dataset.stepId,
-                name: step.querySelector('.step-name').textContent,
-                status: index === 0 ? 'completed' : 'waiting',
-                assignee: step.querySelector('.step-assignee').textContent,
-                completedDate: index === 0 ? new Date().toISOString().split('T')[0] : null
-            }));
-
-            const response = await fetch(`/api/quotes/${quoteId}/workflow`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ workflow })
-            });
-
-            if (response.ok) {
-                // Close modal
-                document.querySelector('.workflow-modal').remove();
-                
-                // Reload quotes
-                await this.loadQuotes();
-                
-                this.showSuccessNotification('Workflow updated successfully!');
-            } else {
-                throw new Error('Failed to save workflow');
-            }
-
-        } catch (error) {
-            console.error('Error saving workflow:', error);
-            alert('Error saving workflow. Please try again.');
-        }
-    }
-
     viewQuote(quoteId) {
         // This would open a detailed quote view
         console.log('Viewing quote:', quoteId);

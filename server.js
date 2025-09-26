@@ -135,7 +135,81 @@ app.listen(PORT, () => {
     console.log(`🔐 Google OAuth configured: ${!!process.env.GOOGLE_CLIENT_ID}`);
 });
 
-// Mock data for quotes
+// Available workflow personas
+// Replace the existing workflowPersonas array with this updated one
+const workflowPersonas = [
+    {
+        id: 'configuration',
+        name: 'Configuration',
+        description: 'Configure product settings and requirements',
+        icon: 'fas fa-cog',
+        color: '#3b82f6'
+    },
+    {
+        id: 'pricing',
+        name: 'Pricing',
+        description: 'Set pricing and discount structures',
+        icon: 'fas fa-tag',
+        color: '#10b981'
+    },
+    {
+        id: 'quoting',
+        name: 'Quoting',
+        description: 'Generate and format the quote',
+        icon: 'fas fa-file-invoice',
+        color: '#f59e0b'
+    },
+    {
+        id: 'contract-creation',
+        name: 'Contract Creation',
+        description: 'Create contract documents',
+        icon: 'fas fa-file-contract',
+        color: '#8b5cf6'
+    },
+    {
+        id: 'contract-negotiation',
+        name: 'Contract Negotiation',
+        description: 'Negotiate contract terms',
+        icon: 'fas fa-handshake',
+        color: '#ef4444'
+    },
+    {
+        id: 'contract-execution',
+        name: 'Contract Execution',
+        description: 'Execute and sign contracts',
+        icon: 'fas fa-pen-fancy',
+        color: '#06b6d4'
+    },
+    {
+        id: 'order-fulfillment',
+        name: 'Order Fulfillment',
+        description: 'Process and fulfill orders',
+        icon: 'fas fa-truck',
+        color: '#84cc16'
+    },
+    {
+        id: 'billing',
+        name: 'Billing',
+        description: 'Generate invoices and process payments',
+        icon: 'fas fa-receipt',
+        color: '#f97316'
+    },
+    {
+        id: 'revenue',
+        name: 'Revenue',
+        description: 'Track and recognize revenue',
+        icon: 'fas fa-chart-line',
+        color: '#ec4899'
+    },
+    {
+        id: 'renewal',
+        name: 'Renewal',
+        description: 'Manage contract renewals',
+        icon: 'fas fa-redo',
+        color: '#6366f1'
+    }
+];
+
 const mockQuotes = [
     {
         id: 'Q-2025-001',
@@ -146,11 +220,11 @@ const mockQuotes = [
         createdBy: 'John Smith (AE)',
         createdDate: '2025-01-15',
         products: ['Enterprise License', 'Premium Support'],
-        currentStep: 'deal-desk',
+        currentStep: 'pricing',
         workflow: [
-            { id: 'ae', name: 'Account Executive', status: 'completed', assignee: 'John Smith', completedDate: '2025-01-15' },
-            { id: 'deal-desk', name: 'Deal Desk', status: 'pending', assignee: 'Sarah Johnson', completedDate: null },
-            { id: 'customer', name: 'Customer', status: 'waiting', assignee: 'Acme Corporation', completedDate: null }
+            { id: 'configuration', name: 'Configuration', status: 'completed', assignee: 'John Smith (AE)', completedDate: '2025-01-15' },
+            { id: 'pricing', name: 'Pricing', status: 'pending', assignee: 'Sarah Johnson (Finance)', completedDate: null },
+            { id: 'quoting', name: 'Quoting', status: 'waiting', assignee: 'Deal Desk', completedDate: null }
         ]
     },
     {
@@ -162,13 +236,14 @@ const mockQuotes = [
         createdBy: 'Mike Davis (AE)',
         createdDate: '2025-01-14',
         products: ['Standard License', 'Basic Support'],
-        currentStep: 'cro',
+        currentStep: 'contract-negotiation',
         workflow: [
-            { id: 'ae', name: 'Account Executive', status: 'completed', assignee: 'Mike Davis', completedDate: '2025-01-14' },
-            { id: 'deal-desk', name: 'Deal Desk', status: 'completed', assignee: 'Sarah Johnson', completedDate: '2025-01-15' },
-            { id: 'cro', name: 'Chief Revenue Officer', status: 'pending', assignee: 'Robert Chen', completedDate: null },
-            { id: 'legal', name: 'Legal', status: 'waiting', assignee: 'Legal Team', completedDate: null },
-            { id: 'customer', name: 'Customer', status: 'waiting', assignee: 'TechStart Inc.', completedDate: null }
+            { id: 'configuration', name: 'Configuration', status: 'completed', assignee: 'Mike Davis (AE)', completedDate: '2025-01-14' },
+            { id: 'pricing', name: 'Pricing', status: 'completed', assignee: 'Finance Team', completedDate: '2025-01-15' },
+            { id: 'quoting', name: 'Quoting', status: 'completed', assignee: 'Deal Desk', completedDate: '2025-01-15' },
+            { id: 'contract-creation', name: 'Contract Creation', status: 'completed', assignee: 'Legal Team', completedDate: '2025-01-16' },
+            { id: 'contract-negotiation', name: 'Contract Negotiation', status: 'pending', assignee: 'Robert Chen (CRO)', completedDate: null },
+            { id: 'contract-execution', name: 'Contract Execution', status: 'waiting', assignee: 'Customer', completedDate: null }
         ]
     },
     {
@@ -176,65 +251,23 @@ const mockQuotes = [
         customer: 'Global Solutions Ltd.',
         amount: 250000,
         discount: 45,
-        status: 'pending',
+        status: 'approved',
         createdBy: 'Lisa Wang (AE)',
         createdDate: '2025-01-13',
         products: ['Enterprise License', 'Premium Support', 'Custom Integration'],
-        currentStep: 'finance',
+        currentStep: 'billing',
         workflow: [
-            { id: 'ae', name: 'Account Executive', status: 'completed', assignee: 'Lisa Wang', completedDate: '2025-01-13' },
-            { id: 'deal-desk', name: 'Deal Desk', status: 'completed', assignee: 'Sarah Johnson', completedDate: '2025-01-13' },
-            { id: 'cro', name: 'Chief Revenue Officer', status: 'completed', assignee: 'Robert Chen', completedDate: '2025-01-14' },
-            { id: 'legal', name: 'Legal', status: 'completed', assignee: 'Legal Team', completedDate: '2025-01-14' },
-            { id: 'finance', name: 'Finance', status: 'pending', assignee: 'Finance Team', completedDate: null },
-            { id: 'customer', name: 'Customer', status: 'waiting', assignee: 'Global Solutions Ltd.', completedDate: null }
+            { id: 'configuration', name: 'Configuration', status: 'completed', assignee: 'Lisa Wang (AE)', completedDate: '2025-01-13' },
+            { id: 'pricing', name: 'Pricing', status: 'completed', assignee: 'Finance Team', completedDate: '2025-01-13' },
+            { id: 'quoting', name: 'Quoting', status: 'completed', assignee: 'Deal Desk', completedDate: '2025-01-14' },
+            { id: 'contract-creation', name: 'Contract Creation', status: 'completed', assignee: 'Legal Team', completedDate: '2025-01-14' },
+            { id: 'contract-negotiation', name: 'Contract Negotiation', status: 'completed', assignee: 'Robert Chen (CRO)', completedDate: '2025-01-15' },
+            { id: 'contract-execution', name: 'Contract Execution', status: 'completed', assignee: 'Customer', completedDate: '2025-01-16' },
+            { id: 'order-fulfillment', name: 'Order Fulfillment', status: 'completed', assignee: 'Operations Team', completedDate: '2025-01-17' },
+            { id: 'billing', name: 'Billing', status: 'pending', assignee: 'Billing Team', completedDate: null },
+            { id: 'revenue', name: 'Revenue', status: 'waiting', assignee: 'Finance Team', completedDate: null },
+            { id: 'renewal', name: 'Renewal', status: 'waiting', assignee: 'Account Executive', completedDate: null }
         ]
-    }
-];
-
-// Available workflow personas
-const workflowPersonas = [
-    {
-        id: 'ae',
-        name: 'Account Executive',
-        description: 'Creates the quote',
-        icon: 'fas fa-user-tie',
-        color: '#3b82f6'
-    },
-    {
-        id: 'deal-desk',
-        name: 'Deal Desk',
-        description: 'Approves quotes with modest discounts (up to 15%)',
-        icon: 'fas fa-handshake',
-        color: '#10b981'
-    },
-    {
-        id: 'cro',
-        name: 'Chief Revenue Officer',
-        description: 'Approves quotes with larger discounts (15–40%)',
-        icon: 'fas fa-crown',
-        color: '#f59e0b'
-    },
-    {
-        id: 'legal',
-        name: 'Legal',
-        description: 'Reviews quotes for contractual language',
-        icon: 'fas fa-gavel',
-        color: '#8b5cf6'
-    },
-    {
-        id: 'finance',
-        name: 'Finance',
-        description: 'Approves edge-case deals (discounts >40% or bespoke payment terms)',
-        icon: 'fas fa-calculator',
-        color: '#ef4444'
-    },
-    {
-        id: 'customer',
-        name: 'Customer',
-        description: 'Receives the final approved quote',
-        icon: 'fas fa-building',
-        color: '#6b7280'
     }
 ];
 
@@ -253,12 +286,26 @@ app.put('/api/quotes/:id/workflow', isAuthenticated, (req, res) => {
     const quoteId = req.params.id;
     const { workflow } = req.body;
     
+    console.log('Updating workflow for quote:', quoteId); // Debug log
+    console.log('New workflow:', workflow); // Debug log
+    
     const quoteIndex = mockQuotes.findIndex(q => q.id === quoteId);
     if (quoteIndex === -1) {
+        console.error('Quote not found:', quoteId); // Debug log
         return res.status(404).json({ error: 'Quote not found' });
     }
     
+    // Update the workflow
     mockQuotes[quoteIndex].workflow = workflow;
+    
+    // Update the current step to the first non-completed step
+    const firstWaitingStep = workflow.find(step => step.status === 'waiting');
+    if (firstWaitingStep) {
+        mockQuotes[quoteIndex].currentStep = firstWaitingStep.id;
+    }
+    
+    console.log('Updated quote:', mockQuotes[quoteIndex]); // Debug log
+    
     res.json({ success: true, quote: mockQuotes[quoteIndex] });
 });
 

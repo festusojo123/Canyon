@@ -248,7 +248,7 @@ class QuotesApp {
         this.showWorkflowEditor(quoteId);
     }
 
-    async showWorkflowEditor(quoteId) {
+async showWorkflowEditor(quoteId) {
     try {
         const quote = this.quotes.find(q => q.id === quoteId);
         const personasResponse = await fetch('/api/workflow-personas');
@@ -261,18 +261,18 @@ class QuotesApp {
         const modal = document.createElement('div');
         modal.className = 'workflow-modal';
         modal.innerHTML = `
-            <div class="modal-overlay" onclick="this.parentElement.remove()"></div>
+            <div class="modal-overlay" onclick="quotesApp.closeWorkflowModal()"></div>
             <div class="modal-content">
                 <div class="modal-header">
                     <h3>Edit Workflow - ${quote.id}</h3>
-                    <button class="modal-close" onclick="this.closest('.workflow-modal').remove()">
+                    <button class="modal-close" onclick="quotesApp.closeWorkflowModal()">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <div class="modal-body">
                     <div class="workflow-editor">
                         <div class="personas-panel">
-                            <h4>Available Personas</h4>
+                            <h4>Available Workflow Steps</h4>
                             <div class="personas-list" id="personasList">
                                 ${personas.map(persona => `
                                     <div class="persona-item" draggable="true" data-persona-id="${persona.id}">
@@ -288,7 +288,7 @@ class QuotesApp {
                             </div>
                         </div>
                         <div class="workflow-builder">
-                            <h4>Workflow Steps</h4>
+                            <h4>Current Workflow</h4>
                             <div class="workflow-steps" id="workflowSteps">
                                 ${quote.workflow.map((step, index) => `
                                     <div class="workflow-step-editor" draggable="true" data-step-id="${step.id}">
@@ -313,16 +313,17 @@ class QuotesApp {
                             </div>
                             <div class="workflow-drop-zone" id="workflowDropZone">
                                 <i class="fas fa-plus"></i>
-                                Drag personas here to add workflow steps
+                                Drag workflow steps here to add them
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn-secondary" onclick="this.closest('.workflow-modal').remove()">
+                    <button class="btn-secondary" onclick="quotesApp.closeWorkflowModal()">
                         Cancel
                     </button>
                     <button class="btn-primary" onclick="quotesApp.saveWorkflow('${quoteId}')">
+                        <i class="fas fa-save"></i>
                         Save Workflow
                     </button>
                 </div>
@@ -331,14 +332,138 @@ class QuotesApp {
 
         document.body.appendChild(modal);
         
-        // Wait for the modal to be fully rendered
+        // Add initial fade-in animation
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.style.transition = 'opacity 0.3s ease';
+            modal.style.opacity = '1';
+        }, 10);
+        
+        // Wait for the modal to be fully rendered before setting up drag and drop
         setTimeout(() => {
             this.setupWorkflowDragAndDrop();
         }, 100);
+            
         } catch (error) {
             console.error('Error showing workflow editor:', error);
             this.showNotification('Error loading workflow editor. Please try again.', 'error');
         }
+    }
+
+        async saveWorkflow(quoteId) {
+    try {
+        const saveButton = document.querySelector('.modal-footer .btn-primary');
+        if (!saveButton) {
+            console.error('Save button not found');
+            return;
+        }
+
+        const originalText = saveButton.innerHTML;
+        
+        // Show loading state
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        saveButton.disabled = true;
+
+        const workflowSteps = document.querySelectorAll('.workflow-step-editor');
+        
+        if (workflowSteps.length === 0) {
+            throw new Error('Workflow must have at least one step');
+        }
+
+        console.log('Found workflow steps:', workflowSteps.length);
+
+        const workflow = Array.from(workflowSteps).map((step, index) => {
+            const stepId = step.dataset.stepId;
+            const stepName = step.querySelector('.step-name').textContent;
+            const assignee = step.querySelector('.step-assignee').textContent;
+            
+            return {
+                id: stepId,
+                name: stepName,
+                status: index === 0 ? 'completed' : 'waiting',
+                assignee: assignee === 'Unassigned' ? this.getDefaultAssignee(stepId) : assignee,
+                completedDate: index === 0 ? new Date().toISOString().split('T')[0] : null
+            };
+        });
+
+        console.log('Sending workflow:', workflow);
+
+        const response = await fetch(`/api/quotes/${quoteId}/workflow`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ workflow })
+        });
+
+        console.log('Response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to save workflow');
+        }
+
+        const result = await response.json();
+        console.log('Save result:', result);
+        
+        // Update local quotes data
+        const quoteIndex = this.quotes.findIndex(q => q.id === quoteId);
+        if (quoteIndex !== -1) {
+            this.quotes[quoteIndex] = result.quote;
+            // Update current step to the first non-completed step
+            const firstWaitingStep = workflow.find(step => step.status === 'waiting');
+            if (firstWaitingStep) {
+                this.quotes[quoteIndex].currentStep = firstWaitingStep.id;
+            }
+        }
+
+        // Show success message first
+        this.showNotification('Workflow updated successfully!', 'success');
+        
+        // Close modal with smooth animation
+        this.closeWorkflowModal();
+        
+        // Refresh the quotes display
+        this.filterQuotes();
+
+    } catch (error) {
+        console.error('Error saving workflow:', error);
+        this.showNotification(error.message || 'Error saving workflow. Please try again.', 'error');
+        
+        // Reset button state on error
+        const saveButton = document.querySelector('.modal-footer .btn-primary');
+        if (saveButton) {
+            saveButton.innerHTML = 'Save Workflow';
+            saveButton.disabled = false;
+            }
+        }
+    }
+
+    closeWorkflowModal() {
+        const modal = document.querySelector('.workflow-modal');
+        if (!modal) {
+            console.log('No modal found to close');
+            return;
+        }
+
+        console.log('Closing workflow modal...');
+        
+        // Remove keyboard event listener if it exists
+        if (modal.hasAttribute('data-keydown-handler')) {
+            document.removeEventListener('keydown', this.handleKeyDown);
+        }
+        
+        // Add closing animation
+        modal.style.transition = 'opacity 0.3s ease';
+        modal.style.opacity = '0';
+        
+        // Remove modal after animation
+        setTimeout(() => {
+            if (modal.parentElement) {
+                modal.remove();
+                console.log('Modal removed from DOM');
+            }
+        }, 300);
     }
 
     setupWorkflowDragAndDrop() {
@@ -407,80 +532,118 @@ class QuotesApp {
         this.setupWorkflowSorting();
     }
 
-    async addWorkflowStep(personaId) {
-        console.log('Adding workflow step:', personaId); // Debug log
+    getDefaultAssignee(stepId) {
+        const defaultAssignees = {
+            'configuration': 'Account Executive',
+            'pricing': 'Finance Team',
+            'quoting': 'Deal Desk',
+            'contract-creation': 'Legal Team',
+            'contract-negotiation': 'Chief Revenue Officer',
+            'contract-execution': 'Customer',
+            'order-fulfillment': 'Operations Team',
+            'billing': 'Billing Team',
+            'revenue': 'Finance Team',
+            'renewal': 'Account Executive'
+        };
         
-        try {
-            const personasResponse = await fetch('/api/workflow-personas');
-            const personas = await personasResponse.json();
-            const persona = personas.find(p => p.id === personaId);
+        return defaultAssignees[stepId] || 'Unassigned';
+    }
 
-            if (!persona) {
-                console.error('Persona not found:', personaId);
-                return;
-            }
+    async addWorkflowStep(personaId) {
+    console.log('Adding workflow step:', personaId);
+    
+    try {
+        const personasResponse = await fetch('/api/workflow-personas');
+        const personas = await personasResponse.json();
+        const persona = personas.find(p => p.id === personaId);
 
-            console.log('Found persona:', persona); // Debug log
-
-            const workflowSteps = document.getElementById('workflowSteps');
-            if (!workflowSteps) {
-                console.error('Workflow steps container not found');
-                return;
-            }
-
-            // Check if this persona is already in the workflow
-            const existingStep = workflowSteps.querySelector(`[data-step-id="${persona.id}"]`);
-            if (existingStep) {
-                this.showNotification(`${persona.name} is already in the workflow`, 'error');
-                return;
-            }
-
-            const stepElement = document.createElement('div');
-            stepElement.className = 'workflow-step-editor';
-            stepElement.draggable = true;
-            stepElement.dataset.stepId = persona.id;
-            stepElement.innerHTML = `
-                <div class="step-handle">
-                    <i class="fas fa-grip-vertical"></i>
-                </div>
-                <div class="step-content">
-                    <div class="step-name">${persona.name}</div>
-                    <div class="step-assignee">Unassigned</div>
-                    <input type="text" class="assignee-input" placeholder="Enter assignee name" style="display: none;">
-                </div>
-                <div class="step-actions">
-                    <button class="btn-secondary btn-xs" onclick="quotesApp.editAssignee(this)" title="Edit Assignee">
-                        <i class="fas fa-user-edit"></i>
-                    </button>
-                    <button class="btn-danger btn-xs" onclick="quotesApp.removeWorkflowStep(this)" title="Remove Step">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            `;
-
-            workflowSteps.appendChild(stepElement);
-            console.log('Step added to DOM'); // Debug log
-
-            // Add drag events to the new step
-            this.setupStepDragEvents(stepElement);
-
-            // Show success feedback with animation
-            stepElement.style.opacity = '0';
-            stepElement.style.transform = 'translateY(-10px)';
-            
-            // Force reflow
-            stepElement.offsetHeight;
-            
-            stepElement.style.transition = 'all 0.3s ease';
-            stepElement.style.opacity = '1';
-            stepElement.style.transform = 'translateY(0)';
-
-            this.showNotification(`${persona.name} added to workflow`, 'success');
-
-        } catch (error) {
-            console.error('Error adding workflow step:', error);
-            this.showNotification('Error adding workflow step', 'error');
+        if (!persona) {
+            console.error('Persona not found:', personaId);
+            return;
         }
+
+        console.log('Found persona:', persona);
+
+        const workflowSteps = document.getElementById('workflowSteps');
+        if (!workflowSteps) {
+            console.error('Workflow steps container not found');
+            return;
+        }
+
+        // Check if this workflow step is already in the workflow
+        const existingStep = workflowSteps.querySelector(`[data-step-id="${persona.id}"]`);
+        if (existingStep) {
+            this.showNotification(`${persona.name} is already in the workflow`, 'error');
+            return;
+        }
+
+        // Determine default assignee based on workflow step
+        const defaultAssignee = this.getDefaultAssignee(persona.id);
+
+        const stepElement = document.createElement('div');
+        stepElement.className = 'workflow-step-editor';
+        stepElement.draggable = true;
+        stepElement.dataset.stepId = persona.id;
+        stepElement.innerHTML = `
+            <div class="step-handle">
+                <i class="fas fa-grip-vertical"></i>
+            </div>
+            <div class="step-content">
+                <div class="step-name">${persona.name}</div>
+                <div class="step-assignee">${defaultAssignee}</div>
+                <input type="text" class="assignee-input" placeholder="Enter assignee name" style="display: none;">
+            </div>
+            <div class="step-actions">
+                <button class="btn-secondary btn-xs" onclick="quotesApp.editAssignee(this)" title="Edit Assignee">
+                    <i class="fas fa-user-edit"></i>
+                </button>
+                <button class="btn-danger btn-xs" onclick="quotesApp.removeWorkflowStep(this)" title="Remove Step">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+
+        workflowSteps.appendChild(stepElement);
+        console.log('Step added to DOM');
+
+        // Add drag events to the new step
+        this.setupStepDragEvents(stepElement);
+
+        // Show success feedback with animation
+        stepElement.style.opacity = '0';
+        stepElement.style.transform = 'translateY(-10px)';
+        
+        // Force reflow
+        stepElement.offsetHeight;
+        
+        stepElement.style.transition = 'all 0.3s ease';
+        stepElement.style.opacity = '1';
+        stepElement.style.transform = 'translateY(0)';
+
+        this.showNotification(`${persona.name} added to workflow`, 'success');
+
+    } catch (error) {
+        console.error('Error adding workflow step:', error);
+        this.showNotification('Error adding workflow step', 'error');
+    }
+    }
+
+    // Add this new method to provide default assignees for each workflow step
+    getDefaultAssignee(stepId) {
+        const defaultAssignees = {
+            'configuration': 'Account Executive',
+            'pricing': 'Finance Team',
+            'quoting': 'Deal Desk',
+            'contract-creation': 'Legal Team',
+            'contract-negotiation': 'Chief Revenue Officer',
+            'contract-execution': 'Customer',
+            'order-fulfillment': 'Operations Team',
+            'billing': 'Billing Team',
+            'revenue': 'Finance Team',
+            'renewal': 'Account Executive'
+        };
+        
+        return defaultAssignees[stepId] || 'Unassigned';
     }
 
     setupStepDragEvents(stepElement) {
@@ -601,112 +764,101 @@ class QuotesApp {
         }, 300);
     }
 
-    async saveWorkflow(quoteId) {
-        try {
-            const saveButton = document.querySelector('.modal-footer .btn-primary');
-            const originalText = saveButton.innerHTML;
-            
-            // Show loading state
-            saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-            saveButton.disabled = true;
+    async addWorkflowStep(personaId) {
+    console.log('Adding workflow step:', personaId);
+    
+    try {
+        const personasResponse = await fetch('/api/workflow-personas');
+        const personas = await personasResponse.json();
+        const persona = personas.find(p => p.id === personaId);
 
-            const workflowSteps = document.querySelectorAll('.workflow-step-editor');
-            
-            if (workflowSteps.length === 0) {
-                throw new Error('Workflow must have at least one step');
-            }
-
-            const workflow = Array.from(workflowSteps).map((step, index) => {
-                const stepId = step.dataset.stepId;
-                const stepName = step.querySelector('.step-name').textContent;
-                const assignee = step.querySelector('.step-assignee').textContent;
-                
-                return {
-                    id: stepId,
-                    name: stepName,
-                    status: index === 0 ? 'completed' : 'waiting',
-                    assignee: assignee === 'Unassigned' ? `${stepName} Team` : assignee,
-                    completedDate: index === 0 ? new Date().toISOString().split('T')[0] : null
-                };
-            });
-
-            const response = await fetch(`/api/quotes/${quoteId}/workflow`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ workflow })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to save workflow');
-            }
-
-            const result = await response.json();
-            
-            // Update local quotes data
-            const quoteIndex = this.quotes.findIndex(q => q.id === quoteId);
-            if (quoteIndex !== -1) {
-                this.quotes[quoteIndex] = result.quote;
-            }
-
-            // Close modal with animation
-            const modal = document.querySelector('.workflow-modal');
-            modal.style.opacity = '0';
-            setTimeout(() => {
-                modal.remove();
-            }, 300);
-            
-            // Refresh the quotes display
-            this.filterQuotes();
-            
-            this.showNotification('Workflow updated successfully!', 'success');
-
-        } catch (error) {
-            console.error('Error saving workflow:', error);
-            this.showNotification(error.message || 'Error saving workflow. Please try again.', 'error');
-            
-            // Reset button state
-            const saveButton = document.querySelector('.modal-footer .btn-primary');
-            if (saveButton) {
-                saveButton.innerHTML = 'Save Workflow';
-                saveButton.disabled = false;
-            }
+        if (!persona) {
+            console.error('Persona not found:', personaId);
+            return;
         }
+
+        console.log('Found persona:', persona);
+
+        const workflowSteps = document.getElementById('workflowSteps');
+        if (!workflowSteps) {
+            console.error('Workflow steps container not found');
+            return;
+        }
+
+        // Check if this workflow step is already in the workflow
+        const existingStep = workflowSteps.querySelector(`[data-step-id="${persona.id}"]`);
+        if (existingStep) {
+            this.showNotification(`${persona.name} is already in the workflow`, 'error');
+            return;
+        }
+
+        // Determine default assignee based on workflow step
+        const defaultAssignee = this.getDefaultAssignee(persona.id);
+
+        const stepElement = document.createElement('div');
+        stepElement.className = 'workflow-step-editor';
+        stepElement.draggable = true;
+        stepElement.dataset.stepId = persona.id;
+        stepElement.innerHTML = `
+            <div class="step-handle">
+                <i class="fas fa-grip-vertical"></i>
+            </div>
+            <div class="step-content">
+                <div class="step-name">${persona.name}</div>
+                <div class="step-assignee">${defaultAssignee}</div>
+                <input type="text" class="assignee-input" placeholder="Enter assignee name" style="display: none;">
+            </div>
+            <div class="step-actions">
+                <button class="btn-secondary btn-xs" onclick="quotesApp.editAssignee(this)" title="Edit Assignee">
+                    <i class="fas fa-user-edit"></i>
+                </button>
+                <button class="btn-danger btn-xs" onclick="quotesApp.removeWorkflowStep(this)" title="Remove Step">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+
+        workflowSteps.appendChild(stepElement);
+        console.log('Step added to DOM');
+
+        // Add drag events to the new step
+        this.setupStepDragEvents(stepElement);
+
+        // Show success feedback with animation
+        stepElement.style.opacity = '0';
+        stepElement.style.transform = 'translateY(-10px)';
+        
+        // Force reflow
+        stepElement.offsetHeight;
+        
+        stepElement.style.transition = 'all 0.3s ease';
+        stepElement.style.opacity = '1';
+        stepElement.style.transform = 'translateY(0)';
+
+        this.showNotification(`${persona.name} added to workflow`, 'success');
+
+    } catch (error) {
+        console.error('Error adding workflow step:', error);
+        this.showNotification('Error adding workflow step', 'error');
+    }
     }
 
-    async saveWorkflow(quoteId) {
-        try {
-            const workflowSteps = document.querySelectorAll('.workflow-step-editor');
-            const workflow = Array.from(workflowSteps).map((step, index) => ({
-                id: step.dataset.stepId,
-                name: step.querySelector('.step-name').textContent,
-                status: index === 0 ? 'completed' : 'waiting',
-                assignee: step.querySelector('.step-assignee').textContent,
-                completedDate: index === 0 ? new Date().toISOString().split('T')[0] : null
-            }));
-
-            const response = await fetch(`/api/quotes/${quoteId}/workflow`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ workflow })
-            });
-
-            if (response.ok) {
-                document.querySelector('.workflow-modal').remove();
-                await this.loadQuotes();
-                this.showNotification('Workflow updated successfully!', 'success');
-            } else {
-                throw new Error('Failed to save workflow');
-            }
-
-        } catch (error) {
-            console.error('Error saving workflow:', error);
-            this.showNotification('Error saving workflow. Please try again.', 'error');
-        }
+    // Add this new method to provide default assignees for each workflow step
+    getDefaultAssignee(stepId) {
+        const defaultAssignees = {
+            'configuration': 'Account Executive',
+            'pricing': 'Finance Team',
+            'quoting': 'Deal Desk',
+            'contract-creation': 'Legal Team',
+            'contract-negotiation': 'Chief Revenue Officer',
+            'contract-execution': 'Customer',
+            'order-fulfillment': 'Operations Team',
+            'billing': 'Billing Team',
+            'revenue': 'Finance Team',
+            'renewal': 'Account Executive'
+        };
+        
+        return defaultAssignees[stepId] || 'Unassigned';
     }
 
     viewQuote(quoteId) {

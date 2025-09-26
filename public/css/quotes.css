@@ -255,55 +255,6 @@
     font-size: 0.85rem;
 }
 
-/* Workflow Progress */
-.quote-workflow {
-    margin: 2rem 0;
-    padding: 1.5rem;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.workflow-progress {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    overflow-x: auto;
-    padding: 1rem 0;
-}
-
-.workflow-step {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    min-width: 220px;
-    padding: 1rem 1.25rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    position: relative;
-    transition: all 0.3s ease;
-}
-
-.workflow-step:hover {
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.workflow-step.completed {
-    background: rgba(16, 185, 129, 0.15);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.workflow-step.pending {
-    background: rgba(245, 158, 11, 0.15);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.1);
-}
-
-.workflow-step.waiting {
-    background: rgba(107, 114, 128, 0.15);
-    border: 1px solid rgba(107, 114, 128, 0.3);
-}
-
 .step-icon {
     width: 32px;
     height: 32px;
@@ -313,21 +264,6 @@
     justify-content: center;
     font-size: 0.9rem;
     font-weight: 600;
-}
-
-.workflow-step.completed .step-icon {
-    background: #10b981;
-    color: white;
-}
-
-.workflow-step.pending .step-icon {
-    background: #f59e0b;
-    color: white;
-}
-
-.workflow-step.waiting .step-icon {
-    background: #6b7280;
-    color: white;
 }
 
 .step-info {
@@ -520,4 +456,59 @@
         flex-direction: column;
     }
 }
+
+/* Enhanced workflow step styling */
+.workflow-step {
+    position: relative;
+    padding: 12px;
+    border-radius: 8px;
+    background: white;
+    border: 2px solid #e5e7eb;
+    transition: all 0.2s ease;
+}
+
+.workflow-step.configuration { border-color: #3b82f6; }
+.workflow-step.pricing { border-color: #10b981; }
+.workflow-step.quoting { border-color: #f59e0b; }
+.workflow-step.contract-creation { border-color: #8b5cf6; }
+.workflow-step.contract-negotiation { border-color: #ef4444; }
+.workflow-step.contract-execution { border-color: #06b6d4; }
+.workflow-step.order-fulfillment { border-color: #84cc16; }
+.workflow-step.billing { border-color: #f97316; }
+.workflow-step.revenue { border-color: #ec4899; }
+.workflow-step.renewal { border-color: #6366f1; }
+
+.workflow-step.completed {
+    background: #064e3b;
+    border-color: #10b981;
+    color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.workflow-step.pending {
+    background: #92400e;
+    border-color: #f59e0b;
+    color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+}
+
+.workflow-step.active {
+    background: #1e40af;
+    border-color: #3b82f6;
+    color: #ffffff;
+    transform: scale(1.02);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Persona item styling for new workflow steps */
+.persona-item[data-persona-id="configuration"] .persona-icon { color: #3b82f6; }
+.persona-item[data-persona-id="pricing"] .persona-icon { color: #10b981; }
+.persona-item[data-persona-id="quoting"] .persona-icon { color: #f59e0b; }
+.persona-item[data-persona-id="contract-creation"] .persona-icon { color: #8b5cf6; }
+.persona-item[data-persona-id="contract-negotiation"] .persona-icon { color: #ef4444; }
+.persona-item[data-persona-id="contract-execution"] .persona-icon { color: #06b6d4; }
+.persona-item[data-persona-id="order-fulfillment"] .persona-icon { color: #84cc16; }
+.persona-item[data-persona-id="billing"] .persona-icon { color: #f97316; }
+.persona-item[data-persona-id="revenue"] .persona-icon { color: #ec4899; }
+.persona-item[data-persona-id="renewal"] .persona-icon { color: #6366f1; }
 
