@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Dashboard Navigation -->
-    <nav class="dashboard-navbar">
+    <!-- Navigation -->
+    <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
                 <div class="logo-icon">
@@ -20,32 +20,18 @@
                 <span class="logo-text">Canyon</span>
             </div>
             <div class="nav-menu">
-                <div class="nav-search">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search...">
-                </div>
-                <div class="nav-notifications">
-                    <button class="notification-btn">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge">3</span>
-                    </button>
-                </div>
-                <div class="user-info" id="userInfo">
-                    <div class="user-avatar" id="userAvatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="user-details">
-                        <span class="user-name" id="userName">Loading...</span>
-                        <span class="user-email" id="userEmail">Loading...</span>
-                    </div>
-                    <div class="user-dropdown">
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                </div>
-                <button class="logout-btn" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
+                <a href="/" class="nav-link">Home</a>
+                <a href="/dashboard" class="nav-link">Dashboard</a>
+                <a href="/quotes" class="nav-link">Quotes</a>
+                <a href="/quotes/create/" class="nav-link">Create Quote</a>
+                <a href="/insights" class="nav-link">Insights</a>
+                <button class="nav-cta" id="userMenu">
+                    <i class="fas fa-user"></i>
+                    <span id="userName">Loading...</span>
                 </button>
+            </div>
+            <div class="mobile-menu-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
             </div>
         </div>
     </nav>
@@ -65,7 +51,7 @@
                 </div>
                 <div class="nav-tab" data-tab="create-quotes">
                     <i class="fas fa-plus-circle"></i>
-                    <span>Create Quotes</span>
+                    <span>Create Quote</span>
                 </div>
                 <div class="nav-tab" data-tab="insights">
                     <i class="fas fa-chart-bar"></i>

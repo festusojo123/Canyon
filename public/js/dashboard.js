@@ -4,54 +4,32 @@ class DashboardApp {
     }
 
     async init() {
-        await this.loadUserProfile();
         this.setupEventListeners();
         this.initializeCharts();
         this.setupSidebarNavigation();
+        await this.checkAuthentication();
     }
 
-    async loadUserProfile() {
+    async checkAuthentication() {
         try {
             const response = await fetch('/api/user');
             const data = await response.json();
-
-            if (data.authenticated) {
-                this.updateUserInfo(data.user);
-                this.showUserProfile(data.user);
-            } else {
+            
+            if (!data.authenticated) {
                 window.location.href = '/?error=unauthorized';
+                return;
             }
+            
+            // Add this line that was missing in the second method
+            const userNameElement = document.getElementById('userName');
+            if (userNameElement) {
+                userNameElement.textContent = data.user.firstName || data.user.name;
+            }
+            
         } catch (error) {
-            console.error('Error loading user profile:', error);
-            this.showError('Failed to load user profile');
+            console.error('Error checking authentication:', error);
+            window.location.href = '/?error=auth_error';
         }
-    }
-
-    updateUserInfo(user) {
-        const userAvatar = document.getElementById('userAvatar');
-        const userName = document.getElementById('userName');
-        const userEmail = document.getElementById('userEmail');
-
-        if (user.picture) {
-            userAvatar.innerHTML = `<img src="${user.picture}" alt="${user.name}">`;
-        }
-
-        userName.textContent = user.name;
-        userEmail.textContent = user.email;
-
-        // Extract first name from full name for welcome message (FIXED SYNTAX)
-        const firstName = user.given_name || user.name.split(' ')[0] || user.name;
-        
-        // Update welcome title with user's first name
-        const welcomeTitle = document.querySelector('.welcome-title');
-        if (welcomeTitle) {
-            welcomeTitle.innerHTML = `Welcome back, <span style="color: #667eea;">${firstName}</span>!`;
-        }
-    }
-
-    showUserProfile(user) {
-        // This method is now empty since we're removing the profile section
-        console.log('Profile loaded for:', user.name);
     }
 
     setupSidebarNavigation() {
@@ -95,48 +73,6 @@ class DashboardApp {
         }
     }
 
-    async logout() {
-        try {
-            // Show loading state
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.disabled = true;
-                logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Logging out...</span>';
-            }
-
-            // 1. Sign out from Google first
-            if (typeof gapi !== 'undefined' && gapi.auth2) {
-                const auth2 = gapi.auth2.getAuthInstance();
-                if (auth2) {
-                    await auth2.signOut();
-                    console.log('User signed out from Google');
-                }
-            }
-
-            // 2. Call backend logout endpoint to destroy session
-            const response = await fetch('/api/logout', {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            // 3. Clear local storage regardless of response
-            localStorage.clear();
-            sessionStorage.clear();
-
-            // 4. Redirect to home page
-            window.location.href = '/';
-
-        } catch (error) {
-            console.error('Logout error:', error);
-            localStorage.clear();
-            sessionStorage.clear();
-            window.location.href = '/';
-        }
-    }
-
     setupEventListeners() {
         const logoutBtn = document.getElementById('logoutBtn');
         
@@ -145,6 +81,16 @@ class DashboardApp {
                 e.preventDefault();
                 this.logout();
             });
+        }
+    }
+
+    async logout() {
+        try {
+            await fetch('/auth/logout', { method: 'POST' });
+            window.location.href = '/';
+        } catch (error) {
+            console.error('Logout error:', error);
+            window.location.href = '/';
         }
     }
 

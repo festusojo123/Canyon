@@ -167,6 +167,16 @@ class CanyonApp {
         if (data.isQuotesRedirect) {
             this.handleQuotesRedirect();
         }
+
+        // Special handling for insights redirect
+        if (data.isInsightsRedirect) {
+            this.handleInsightsRedirect();
+        }
+
+        // Special handling for create quotes redirect
+        if (data.isCreateQuotesRedirect) {
+            this.handleCreateQuotesRedirect();
+        }
     }
 
     async handleQuotesTab() {
@@ -386,24 +396,49 @@ class CanyonApp {
         }
     }
 
-    async handleQuotesRedirect() {
+    async handleInsightsRedirect() {
+    // Check if user is authenticated
+    try {
+        const authResponse = await fetch('/api/user');
+        const authData = await authResponse.json();
+        
+        if (authData.authenticated) {
+            this.contentFeatures.innerHTML += `
+                <div class="insights-redirect-cta">
+                    <button class="btn-primary btn-large" onclick="window.location.href='/insights'">
+                        <i class="fas fa-chart-line"></i>
+                        Go to Analytics & Insights
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <p class="redirect-description">Access your comprehensive analytics dashboard with real-time data and AI-powered insights.</p>
+                </div>
+            `;
+        }
+        } catch (error) {
+            console.error('Error checking auth for insights:', error);
+        }
+    }
+
+    async handleCreateQuotesRedirect() {
         // Check if user is authenticated
         try {
             const authResponse = await fetch('/api/user');
             const authData = await authResponse.json();
             
             if (authData.authenticated) {
-                // Add a "Go to Quotes" button in the actions
                 this.contentFeatures.innerHTML += `
-                    <div class="quotes-redirect-cta">
-                        <button class="btn-primary btn-large" onclick="window.location.href='/quotes'">
+                    <div class="create-quotes-redirect-cta">
+                        <button class="btn-primary btn-large" onclick="window.location.href='/quotes/create'">
+                            <i class="fas fa-plus"></i>
+                            Create New Quote
                             <i class="fas fa-arrow-right"></i>
-                            Go to Quotes
+                        </button>
+                        <p class="redirect-description">Start building professional quotes with our intuitive drag & drop builder and AI assistance.</p>
                     </div>
                 `;
             }
         } catch (error) {
-            console.error('Error checking auth for quotes:', error);
+            console.error('Error checking auth for create quotes:', error);
         }
     }
 
@@ -414,7 +449,7 @@ class CanyonApp {
             <div class="preview-content">
                 <div class="preview-header">
                     <i class="fas fa-eye"></i>
-                    <h3>Quotes Management Preview</h3>
+                    <h3>Quotes Preview</h3>
                     <p>Sign in to access the full quotes management system</p>
                 </div>
                 
@@ -785,7 +820,6 @@ class CanyonApp {
     setupGoogleSSO() {
         this.checkAuthStatus();
         this.setupAuthButtons();
-        this.checkAuthErrors();
     }
 
     async checkAuthStatus() {
@@ -916,27 +950,6 @@ class CanyonApp {
         }
     }
 
-    checkAuthErrors() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const error = urlParams.get('error');
-        
-        if (error) {
-            let errorMessage = 'Authentication failed. Please try again.';
-            
-            switch (error) {
-                case 'auth_failed':
-                    errorMessage = 'Google authentication failed. Please try again.';
-                    break;
-                case 'unauthorized':
-                    errorMessage = 'You need to sign in to access that page.';
-                    break;
-            }
-            
-            this.showErrorNotification(errorMessage);
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-    }
-
     showErrorNotification(message) {
         const notification = document.createElement('div');
         notification.className = 'auth-notification error';
@@ -979,6 +992,121 @@ class CanyonApp {
                 notification.remove();
             }
         }, 8080);
+    }
+
+    // Enhanced redirect handlers with attractive styling
+    async handleQuotesRedirect() {
+        try {
+            const authResponse = await fetch('/api/user');
+            const authData = await authResponse.json();
+            
+            if (authData.authenticated) {
+                const redirectCTA = this.createEnhancedRedirectButton({
+                    title: 'Access Full Quotes System',
+                    description: 'Manage all your quotes with advanced workflow capabilities',
+                    buttonText: 'Go to Quotes Dashboard',
+                    buttonIcon: 'fas fa-tachometer-alt',
+                    url: '/quotes',
+                    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    shadowColor: 'rgba(102, 126, 234, 0.4)',
+                    features: ['View all quotes', 'Edit workflows', 'Track approvals', 'Generate reports']
+                });
+                
+                this.contentFeatures.appendChild(redirectCTA);
+            }
+        } catch (error) {
+            console.error('Error checking auth for quotes:', error);
+        }
+    }
+
+    async handleCreateQuotesRedirect() {
+        try {
+            const authResponse = await fetch('/api/user');
+            const authData = await authResponse.json();
+            
+            if (authData.authenticated) {
+                const redirectCTA = this.createEnhancedRedirectButton({
+                    title: 'Start Creating Quotes',
+                    description: 'Launch the AI-powered quote builder and create professional quotes in minutes',
+                    buttonText: 'Create New Quote',
+                    buttonIcon: 'fas fa-plus-circle',
+                    url: '/quotes/create',
+                    gradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                    shadowColor: 'rgba(17, 153, 142, 0.4)',
+                    features: ['AI assistance', 'Smart templates', 'Instant PDF', 'Custom branding']
+                });
+                
+                this.contentFeatures.appendChild(redirectCTA);
+            }
+        } catch (error) {
+            console.error('Error checking auth for create quotes:', error);
+        }
+    }
+
+    async handleInsightsRedirect() {
+        try {
+            const authResponse = await fetch('/api/user');
+            const authData = await authResponse.json();
+            
+            if (authData.authenticated) {
+                const redirectCTA = this.createEnhancedRedirectButton({
+                    title: 'Explore Analytics Dashboard',
+                    description: 'Dive deep into your sales data with comprehensive analytics and AI insights',
+                    buttonText: 'View Analytics',
+                    buttonIcon: 'fas fa-chart-bar',
+                    url: '/insights',
+                    gradient: 'linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)',
+                    shadowColor: 'rgba(255, 107, 107, 0.4)',
+                    features: ['Real-time data', 'AI predictions', 'Custom reports', 'Smart alerts']
+                });
+                
+                this.contentFeatures.appendChild(redirectCTA);
+            }
+        } catch (error) {
+            console.error('Error checking auth for insights:', error);
+        }
+    }
+
+    createEnhancedRedirectButton(config) {
+        const container = document.createElement('div');
+        container.className = 'enhanced-redirect-cta';
+        container.innerHTML = `
+            <div class="redirect-card" style="background: ${config.gradient};">
+                <div class="redirect-glow"></div>
+                <div class="redirect-content">
+                    <div class="redirect-header">
+                        <div class="redirect-icon">
+                            <i class="${config.buttonIcon}"></i>
+                        </div>
+                        <div class="redirect-text">
+                            <h3 class="redirect-title">${config.title}</h3>
+                            <p class="redirect-description">${config.description}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="redirect-features">
+                        ${config.features.map(feature => `
+                            <div class="redirect-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>${feature}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <button class="enhanced-redirect-btn" onclick="window.location.href='${config.url}'" 
+                            style="box-shadow: 0 8px 32px ${config.shadowColor};">
+                        <span class="btn-content">
+                            <i class="${config.buttonIcon}"></i>
+                            <span>${config.buttonText}</span>
+                            <i class="fas fa-arrow-right btn-arrow"></i>
+                        </span>
+                        <div class="btn-shine"></div>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        return container;
     }
 
     async loadQuotesInterface() {

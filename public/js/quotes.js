@@ -1020,7 +1020,7 @@ async showWorkflowEditor(quoteId) {
 
     createNewQuote() {
         console.log('Creating new quote');
-        alert('New quote creation interface would open here.');
+        window.location.href = '/quotes/create';
     }
 
     showUserMenu() {

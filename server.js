@@ -14,7 +14,7 @@ app.use(express.json());
 
 // Session configuration
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'fallback-secret-key',
+    secret: process.env.SESSION_SECRET || 'fallback-secret-key', // Fixed: added fallback
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -130,11 +130,18 @@ app.get('/api/user', (req, res) => {
     }
 });
 
-// Add this before the app.listen() call
-
 // Protected insights route
 app.get('/insights', isAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'insights.html'));
+});
+
+// Protected quotes routes
+app.get('/quotes', isAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'quotes.html'));
+});
+
+app.get('/quotes/create', isAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'create-quote.html'));
 });
 
 // API endpoint to get insights data
@@ -233,11 +240,11 @@ app.get('/api/insights/filter', isAuthenticated, (req, res) => {
     
     // Mock filtered data based on query parameters
     let filteredData = {
-        message: `Filtered insights for: ${dateRange || 'all time'}`,
+        message: `Filtered insights for: ${dateRange || 'all time'}`, // Fixed: added fallback
         filters: {
-            dateRange: dateRange || 'all',
-            salesRep: salesRep || 'all',
-            status: status || 'all'
+            dateRange: dateRange || 'all', // Fixed: added fallback
+            salesRep: salesRep || 'all', // Fixed: added fallback
+            status: status || 'all' // Fixed: added fallback
         },
         // You would implement actual filtering logic here
         totalQuotes: dateRange === 'last30days' ? 23 : 156,
@@ -248,7 +255,6 @@ app.get('/api/insights/filter', isAuthenticated, (req, res) => {
 });
 
 // Available workflow personas
-// Replace the existing workflowPersonas array with this updated one
 const workflowPersonas = [
     {
         id: 'configuration',
@@ -398,12 +404,12 @@ app.put('/api/quotes/:id/workflow', isAuthenticated, (req, res) => {
     const quoteId = req.params.id;
     const { workflow } = req.body;
     
-    console.log('Updating workflow for quote:', quoteId); // Debug log
-    console.log('New workflow:', workflow); // Debug log
+    console.log('Updating workflow for quote:', quoteId);
+    console.log('New workflow:', workflow);
     
     const quoteIndex = mockQuotes.findIndex(q => q.id === quoteId);
     if (quoteIndex === -1) {
-        console.error('Quote not found:', quoteId); // Debug log
+        console.error('Quote not found:', quoteId);
         return res.status(404).json({ error: 'Quote not found' });
     }
     
@@ -416,12 +422,12 @@ app.put('/api/quotes/:id/workflow', isAuthenticated, (req, res) => {
         mockQuotes[quoteIndex].currentStep = firstWaitingStep.id;
     }
     
-    console.log('Updated quote:', mockQuotes[quoteIndex]); // Debug log
+    console.log('Updated quote:', mockQuotes[quoteIndex]);
     
     res.json({ success: true, quote: mockQuotes[quoteIndex] });
 });
 
-// API endpoints for tab content
+// API endpoints for tab content with enhanced redirect buttons
 app.get('/api/content/:tab', (req, res) => {
     const tabContent = {
         home: {
@@ -442,7 +448,7 @@ app.get('/api/content/:tab', (req, res) => {
         },
         quotes: {
             image: '📋',
-            title: 'Quotes',
+            title: 'Quotes Management',
             subtitle: 'Advanced quote capabilities with approval workflows',
             content: 'Create, manage, and track quotes with our powerful quote management system featuring customizable approval workflows.',
             features: [
@@ -456,38 +462,69 @@ app.get('/api/content/:tab', (req, res) => {
                 accuracy: '99.5%',
                 savings: '40%'
             },
-            isQuotesRedirect: true // Handle redirect
+            isQuotesRedirect: true,
+            redirectConfig: {
+                title: 'Access Full Quotes System',
+                description: 'Manage all your quotes with advanced workflow capabilities',
+                buttonText: 'Go to Quotes Dashboard',
+                buttonIcon: 'fas fa-tachometer-alt',
+                url: '/quotes',
+                gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                shadowColor: 'rgba(102, 126, 234, 0.4)'
+            }
         },
         createQuotes: {
             image: '✨',
             title: 'Create New Quotes',
-            subtitle: 'Get started with quote creation',
-            content: 'Build professional quotes quickly with our intuitive quote builder and configuration tools.',
+            subtitle: 'AI-powered quote generation',
+            content: 'Build professional quotes quickly with our intuitive quote builder, AI assistance, and smart configuration tools.',
             features: [
-                { icon: 'fas fa-magic', text: 'Drag & Drop Builder' },
+                { icon: 'fas fa-robot', text: 'AI Quote Generation' },
+                { icon: 'fas fa-magic', text: 'Smart Templates' },
                 { icon: 'fas fa-palette', text: 'Custom Branding' },
-                { icon: 'fas fa-download', text: 'PDF Export' }
+                { icon: 'fas fa-download', text: 'Instant PDF Export' }
             ],
             stats: {
                 templates: '50+',
-                time: '5 min',
-                automation: '80%'
+                time: '3 min',
+                automation: '85%'
+            },
+            isCreateQuotesRedirect: true,
+            redirectConfig: {
+                title: 'Start Creating Quotes',
+                description: 'Launch the AI-powered quote builder and create professional quotes in minutes',
+                buttonText: 'Create New Quote',
+                buttonIcon: 'fas fa-plus-circle',
+                url: '/quotes/create',
+                gradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                shadowColor: 'rgba(17, 153, 142, 0.4)'
             }
         },
         insights: {
             image: '📊',
             title: 'Analytics & Insights',
-            subtitle: 'Smart business intelligence',
-            content: 'Get detailed insights into your sales performance with our advanced analytics dashboard.',
+            subtitle: 'AI-driven business intelligence',
+            content: 'Get detailed insights into your sales performance with our advanced analytics dashboard powered by machine learning.',
             features: [
-                { icon: 'fas fa-chart-bar', text: 'Real-time Analytics' },
+                { icon: 'fas fa-chart-line', text: 'Real-time Analytics' },
                 { icon: 'fas fa-brain', text: 'AI Predictions' },
-                { icon: 'fas fa-bell', text: 'Smart Alerts' }
+                { icon: 'fas fa-bell', text: 'Smart Alerts' },
+                { icon: 'fas fa-filter', text: 'Advanced Filtering' }
             ],
             stats: {
                 dataPoints: '1M+',
-                accuracy: '95%',
-                reports: '100+'
+                accuracy: '97%',
+                reports: '150+'
+            },
+            isInsightsRedirect: true,
+            redirectConfig: {
+                title: 'Explore Analytics Dashboard',
+                description: 'Dive deep into your sales data with comprehensive analytics and AI insights',
+                buttonText: 'View Analytics',
+                buttonIcon: 'fas fa-chart-bar',
+                url: '/insights',
+                gradient: 'linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)',
+                shadowColor: 'rgba(255, 107, 107, 0.4)'
             }
         },
         support: {
@@ -519,29 +556,22 @@ app.get('/api/content/:tab', (req, res) => {
     });
 });
 
-// Add this route to your server.js
-app.get('/quotes', isAuthenticated, (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'quotes.html'));
-});
-
-// In your Express.js backend
+// Logout endpoint
 app.post('/api/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) {
             console.error('Session destruction error:', err);
         }
-        res.clearCookie('connect.sid'); // Clear session cookie
+        res.clearCookie('connect.sid');
         res.json({ success: true, message: 'Logged out successfully' });
     });
 });
 
-// Add this new API endpoint for AI quote generation
+// AI quote generation endpoint
 app.post('/api/quotes/generate-ai', isAuthenticated, (req, res) => {
     const { prompt, customerContext } = req.body;
     
-    // Simulate AI processing time
     setTimeout(() => {
-        // Mock AI-generated quote based on the prompt
         const mockAIQuote = generateMockAIQuote(prompt, customerContext);
         res.json({
             success: true,
@@ -553,23 +583,19 @@ app.post('/api/quotes/generate-ai', isAuthenticated, (req, res) => {
                 "Custom integration services recommended for this customer size"
             ]
         });
-    }, 2000); // Simulate AI processing delay
+    }, 2000);
 });
 
 // Mock AI quote generation function
 function generateMockAIQuote(prompt, customerContext) {
-    // Simple keyword extraction (in real app, this would be LLM processing)
     const lowerPrompt = prompt.toLowerCase();
     
-    // Extract quantities
     const quantityMatch = lowerPrompt.match(/(\d+)\s*(seats?|licenses?|users?)/);
     const quantity = quantityMatch ? parseInt(quantityMatch[1]) : 1;
     
-    // Extract discount
     const discountMatch = lowerPrompt.match(/(\d+)%?\s*discount/);
     const discount = discountMatch ? parseInt(discountMatch[1]) : 0;
     
-    // Determine products based on keywords
     let selectedProducts = [];
     
     if (lowerPrompt.includes('enterprise') || quantity > 50) {
@@ -616,7 +642,6 @@ function generateMockAIQuote(prompt, customerContext) {
         });
     }
     
-    // Add custom integration for large deployments
     if (quantity > 200 || lowerPrompt.includes('integration') || lowerPrompt.includes('custom')) {
         selectedProducts.push({
             id: 'CUS-INT-001',
@@ -629,7 +654,6 @@ function generateMockAIQuote(prompt, customerContext) {
         });
     }
     
-    // Calculate totals
     let subtotal = 0;
     let totalDiscount = 0;
     
@@ -660,11 +684,6 @@ function generateMockAIQuote(prompt, customerContext) {
         }
     };
 }
-
-// Add this route after your existing /quotes route
-app.get('/quotes/create', isAuthenticated, (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'create-quote.html'));
-});
 
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
