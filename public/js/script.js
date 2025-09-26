@@ -1045,9 +1045,9 @@ class CanyonApp {
             
             if (authData.authenticated) {
                 const redirectCTA = this.createEnhancedRedirectButton({
-                    title: 'Explore Analytics Dashboard',
+                    title: 'Explore Insights Dashboard',
                     description: 'Dive deep into your sales data with comprehensive analytics and AI insights',
-                    buttonText: 'View Analytics',
+                    buttonText: 'View Insights',
                     buttonIcon: 'fas fa-chart-bar',
                     url: '/insights',
                     gradient: 'linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)',

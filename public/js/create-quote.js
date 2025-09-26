@@ -65,7 +65,7 @@ class CreateQuoteApp {
             case 'create-quotes':
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 break;
-            case 'analytics':
+            case 'insights':
                 window.location.href = '/insights';
                 break;
             case 'support':
