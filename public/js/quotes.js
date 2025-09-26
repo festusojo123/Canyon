@@ -8,9 +8,51 @@ class QuotesApp {
     async init() {
         this.setupElements();
         this.setupEventListeners();
+        this.setupSidebarNavigation();
         await this.checkAuthentication();
         await this.loadQuotes();
         this.updateStats();
+    }
+
+    setupSidebarNavigation() {
+        const navTabs = document.querySelectorAll('.nav-tab');
+        
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                navTabs.forEach(t => t.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Handle navigation based on tab
+                const tabType = tab.getAttribute('data-tab');
+                this.handleTabNavigation(tabType);
+            });
+        });
+    }
+
+    handleTabNavigation(tabType) {
+        switch(tabType) {
+            case 'dashboard':
+                window.location.href = '/dashboard';
+                break;
+            case 'quotes':
+                // Already on quotes page - scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                break;
+            case 'create-quotes':
+                window.location.href = '/quotes/create';
+                break;
+            case 'insights':
+                window.location.href = '/insights';
+                break;
+            case 'support':
+                window.location.href = '/dashboard';
+                break;
+            default:
+                console.log('Unknown tab:', tabType);
+        }
     }
 
     setupElements() {

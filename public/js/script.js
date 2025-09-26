@@ -398,16 +398,7 @@ class CanyonApp {
                     <div class="quotes-redirect-cta">
                         <button class="btn-primary btn-large" onclick="window.location.href='/quotes'">
                             <i class="fas fa-arrow-right"></i>
-                            Go to Quotes Management
-                    </div>
-                `;
-            } else {
-                // Show sign-in prompt
-                this.contentFeatures.innerHTML += `
-                    <div class="quotes-signin-cta">
-                        <button class="btn-primary btn-large" onclick="app.initiateGoogleSSO()">
-                            <i class="fab fa-google"></i>
-                            Sign In to Access Quotes
+                            Go to Quotes
                     </div>
                 `;
             }

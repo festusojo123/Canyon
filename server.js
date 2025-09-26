@@ -411,3 +411,14 @@ app.get('/api/content/:tab', (req, res) => {
 app.get('/quotes', isAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'quotes.html'));
 });
+
+// In your Express.js backend
+app.post('/api/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Session destruction error:', err);
+        }
+        res.clearCookie('connect.sid'); // Clear session cookie
+        res.json({ success: true, message: 'Logged out successfully' });
+    });
+});
