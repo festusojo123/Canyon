@@ -19,6 +19,24 @@ class CanyonApp {
         this.updateStats();
     }
 
+    async checkAuthentication() {
+        try {
+            const response = await fetch('/api/user');
+            const data = await response.json();
+            
+            if (!data.authenticated) {
+                window.location.href = '/?error=unauthorized';
+                return;
+            }
+            
+            this.userName.textContent = data.user.firstName || data.user.name;
+            
+        } catch (error) {
+            console.error('Error checking authentication:', error);
+            window.location.href = '/?error=auth_error';
+        }
+    }
+
     setupElements() {
         this.verticalTabs = document.getElementById('verticalTabs');
         this.tabButtons = document.querySelectorAll('.tab-item');
