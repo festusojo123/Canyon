@@ -195,7 +195,7 @@ class CanyonApp {
             <div class="preview-content">
                 <div class="preview-header">
                     <i class="fas fa-eye"></i>
-                    <h3>Quotes Management Preview</h3>
+                    <h3>Quotes Preview</h3>
                     <p>Sign in to access the full quotes management system</p>
                 </div>
                 

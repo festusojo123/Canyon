@@ -130,9 +130,121 @@ app.get('/api/user', (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`🔐 Google OAuth configured: ${!!process.env.GOOGLE_CLIENT_ID}`);
+// Add this before the app.listen() call
+
+// Protected insights route
+app.get('/insights', isAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'insights.html'));
+});
+
+// API endpoint to get insights data
+app.get('/api/insights', isAuthenticated, (req, res) => {
+    // Mock insights data - replace with actual database queries
+    const insightsData = {
+        overview: {
+            totalQuotes: 156,
+            totalRevenue: 2450000,
+            conversionRate: 68.5,
+            averageDealSize: 85000,
+            monthlyGrowth: 12.3
+        },
+        salesMetrics: {
+            quotesThisMonth: 23,
+            quotesLastMonth: 19,
+            revenueThisMonth: 385000,
+            revenueLastMonth: 342000,
+            topPerformer: 'Lisa Wang',
+            averageCloseTime: 14 // days
+        },
+        workflowAnalytics: {
+            bottlenecks: [
+                { step: 'contract-negotiation', averageTime: 5.2, count: 8 },
+                { step: 'pricing', averageTime: 2.1, count: 12 },
+                { step: 'contract-execution', averageTime: 7.8, count: 5 }
+            ],
+            completionRates: {
+                configuration: 98.5,
+                pricing: 92.1,
+                quoting: 89.7,
+                'contract-creation': 85.3,
+                'contract-negotiation': 78.9,
+                'contract-execution': 72.4,
+                'order-fulfillment': 95.8,
+                billing: 91.2,
+                revenue: 88.6,
+                renewal: 67.3
+            }
+        },
+        recentActivity: [
+            {
+                id: 1,
+                type: 'quote_approved',
+                description: 'Quote Q-2025-003 approved for $250,000',
+                timestamp: '2025-01-17T10:30:00Z',
+                user: 'Robert Chen'
+            },
+            {
+                id: 2,
+                type: 'workflow_completed',
+                description: 'Contract execution completed for TechStart Inc.',
+                timestamp: '2025-01-17T09:15:00Z',
+                user: 'System'
+            },
+            {
+                id: 3,
+                type: 'quote_created',
+                description: 'New quote Q-2025-004 created for Innovation Corp',
+                timestamp: '2025-01-17T08:45:00Z',
+                user: 'John Smith'
+            }
+        ],
+        chartData: {
+            monthlyRevenue: [
+                { month: 'Jul', revenue: 180000 },
+                { month: 'Aug', revenue: 220000 },
+                { month: 'Sep', revenue: 195000 },
+                { month: 'Oct', revenue: 285000 },
+                { month: 'Nov', revenue: 310000 },
+                { month: 'Dec', revenue: 342000 },
+                { month: 'Jan', revenue: 385000 }
+            ],
+            quotesStatus: [
+                { status: 'pending', count: 45 },
+                { status: 'approved', count: 78 },
+                { status: 'rejected', count: 12 },
+                { status: 'expired', count: 21 }
+            ],
+            workflowDistribution: [
+                { step: 'configuration', count: 15 },
+                { step: 'pricing', count: 12 },
+                { step: 'quoting', count: 8 },
+                { step: 'contract-negotiation', count: 6 },
+                { step: 'billing', count: 4 }
+            ]
+        }
+    };
+    
+    res.json(insightsData);
+});
+
+// API endpoint to get filtered insights data
+app.get('/api/insights/filter', isAuthenticated, (req, res) => {
+    const { dateRange, salesRep, status } = req.query;
+    
+    // Mock filtered data based on query parameters
+    let filteredData = {
+        message: `Filtered insights for: ${dateRange || 'all time'}`,
+        filters: {
+            dateRange: dateRange || 'all',
+            salesRep: salesRep || 'all',
+            status: status || 'all'
+        },
+        // You would implement actual filtering logic here
+        totalQuotes: dateRange === 'last30days' ? 23 : 156,
+        totalRevenue: dateRange === 'last30days' ? 385000 : 2450000
+    };
+    
+    res.json(filteredData);
 });
 
 // Available workflow personas
@@ -330,7 +442,7 @@ app.get('/api/content/:tab', (req, res) => {
         },
         quotes: {
             image: '📋',
-            title: 'Quotes Management',
+            title: 'Quotes',
             subtitle: 'Advanced quote capabilities with approval workflows',
             content: 'Create, manage, and track quotes with our powerful quote management system featuring customizable approval workflows.',
             features: [
@@ -421,4 +533,10 @@ app.post('/api/logout', (req, res) => {
         res.clearCookie('connect.sid'); // Clear session cookie
         res.json({ success: true, message: 'Logged out successfully' });
     });
+});
+
+
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`🔐 Google OAuth configured: ${!!process.env.GOOGLE_CLIENT_ID}`);
 });
