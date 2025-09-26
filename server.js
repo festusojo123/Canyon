@@ -686,6 +686,6 @@ function generateMockAIQuote(prompt, customerContext) {
 }
 
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`🚀 Server running on https://canyon-cpq-29148578099.us-west1.run.app`);
     console.log(`🔐 Google OAuth configured: ${!!process.env.GOOGLE_CLIENT_ID}`);
 });
