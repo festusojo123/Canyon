@@ -535,6 +535,136 @@ app.post('/api/logout', (req, res) => {
     });
 });
 
+// Add this new API endpoint for AI quote generation
+app.post('/api/quotes/generate-ai', isAuthenticated, (req, res) => {
+    const { prompt, customerContext } = req.body;
+    
+    // Simulate AI processing time
+    setTimeout(() => {
+        // Mock AI-generated quote based on the prompt
+        const mockAIQuote = generateMockAIQuote(prompt, customerContext);
+        res.json({
+            success: true,
+            quote: mockAIQuote,
+            confidence: 0.92,
+            suggestions: [
+                "Consider adding Premium Support for enterprise customers",
+                "Volume discount available for orders over 50 seats",
+                "Custom integration services recommended for this customer size"
+            ]
+        });
+    }, 2000); // Simulate AI processing delay
+});
+
+// Mock AI quote generation function
+function generateMockAIQuote(prompt, customerContext) {
+    // Simple keyword extraction (in real app, this would be LLM processing)
+    const lowerPrompt = prompt.toLowerCase();
+    
+    // Extract quantities
+    const quantityMatch = lowerPrompt.match(/(\d+)\s*(seats?|licenses?|users?)/);
+    const quantity = quantityMatch ? parseInt(quantityMatch[1]) : 1;
+    
+    // Extract discount
+    const discountMatch = lowerPrompt.match(/(\d+)%?\s*discount/);
+    const discount = discountMatch ? parseInt(discountMatch[1]) : 0;
+    
+    // Determine products based on keywords
+    let selectedProducts = [];
+    
+    if (lowerPrompt.includes('enterprise') || quantity > 50) {
+        selectedProducts.push({
+            id: 'ENT-LIC-001',
+            name: 'Enterprise License',
+            category: 'Software License',
+            basePrice: 50000,
+            quantity: Math.max(1, Math.floor(quantity / 100)),
+            discount: discount,
+            aiReasoning: 'Selected Enterprise License based on high seat count and enterprise keywords'
+        });
+        
+        if (lowerPrompt.includes('support') || quantity > 100) {
+            selectedProducts.push({
+                id: 'PREM-SUP-001',
+                name: 'Premium Support',
+                category: 'Support Services',
+                basePrice: 15000,
+                quantity: 1,
+                discount: Math.max(0, discount - 5),
+                aiReasoning: 'Added Premium Support for enterprise deployment'
+            });
+        }
+    } else if (lowerPrompt.includes('standard') || quantity <= 50) {
+        selectedProducts.push({
+            id: 'STD-LIC-001',
+            name: 'Standard License',
+            category: 'Software License',
+            basePrice: 25000,
+            quantity: Math.max(1, Math.floor(quantity / 50)),
+            discount: discount,
+            aiReasoning: 'Selected Standard License for smaller deployment'
+        });
+        
+        selectedProducts.push({
+            id: 'BAS-SUP-001',
+            name: 'Basic Support',
+            category: 'Support Services',
+            basePrice: 5000,
+            quantity: 1,
+            discount: Math.max(0, discount - 10),
+            aiReasoning: 'Added Basic Support as standard offering'
+        });
+    }
+    
+    // Add custom integration for large deployments
+    if (quantity > 200 || lowerPrompt.includes('integration') || lowerPrompt.includes('custom')) {
+        selectedProducts.push({
+            id: 'CUS-INT-001',
+            name: 'Custom Integration',
+            category: 'Professional Services',
+            basePrice: 35000,
+            quantity: 1,
+            discount: Math.max(0, discount - 15),
+            aiReasoning: 'Added Custom Integration for complex deployment requirements'
+        });
+    }
+    
+    // Calculate totals
+    let subtotal = 0;
+    let totalDiscount = 0;
+    
+    selectedProducts.forEach(product => {
+        const lineSubtotal = product.basePrice * product.quantity;
+        const discountAmount = lineSubtotal * (product.discount / 100);
+        subtotal += lineSubtotal;
+        totalDiscount += discountAmount;
+    });
+    
+    return {
+        products: selectedProducts,
+        summary: {
+            subtotal: subtotal,
+            totalDiscount: totalDiscount,
+            total: subtotal - totalDiscount,
+            seatCount: quantity,
+            averageDiscountPercent: Math.round((totalDiscount / subtotal) * 100)
+        },
+        aiInsights: {
+            confidence: 0.92,
+            reasoning: `Based on your request for ${quantity} seats with ${discount}% discount, I've configured an appropriate solution. The total includes volume discounts and recommended add-ons for this deployment size.`,
+            riskFactors: discount > 30 ? ['High discount may require additional approval'] : [],
+            opportunities: [
+                'Multi-year contract could provide additional savings',
+                'Training services available for large deployments'
+            ]
+        }
+    };
+}
+
+// Add this route after your existing /quotes route
+app.get('/quotes/create', isAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'create-quote.html'));
+});
 
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);

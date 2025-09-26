@@ -62,7 +62,7 @@ class InsightsApp {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 break;
             case 'support':
-                window.location.href = '/support';
+                window.location.href = '/dashboard';
                 break;
             default:
                 console.log('Unknown tab:', tabType);
