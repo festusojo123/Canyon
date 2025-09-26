@@ -1101,35 +1101,6 @@ class CanyonApp {
         return card;
     }
 
-    createWorkflowProgress(workflow, currentStep) {
-        return workflow.map((step, index) => {
-            const isActive = step.id === currentStep;
-            const isCompleted = step.status === 'completed';
-            const isPending = step.status === 'pending';
-            
-            let statusClass = 'waiting';
-            if (isCompleted) statusClass = 'completed';
-            else if (isPending) statusClass = 'pending';
-            else if (isActive) statusClass = 'active';
-
-            return `
-                <div class="workflow-step ${statusClass}" data-step="${step.id}">
-                    <div class="step-icon">
-                        ${isCompleted ? '<i class="fas fa-check"></i>' : 
-                        isPending ? '<i class="fas fa-clock"></i>' : 
-                        '<i class="fas fa-circle"></i>'}
-                    </div>
-                    <div class="step-info">
-                        <div class="step-name">${step.name}</div>
-                        <div class="step-assignee">${step.assignee}</div>
-                        ${step.completedDate ? `<div class="step-date">Completed: ${new Date(step.completedDate).toLocaleDateString()}</div>` : ''}
-                    </div>
-                    ${index < workflow.length - 1 ? '<div class="step-connector"></div>' : ''}
-                </div>
-            `;
-        }).join('');
-    }
-
     setupQuotesEventListeners() {
         // Status filter
         const statusFilter = document.getElementById('statusFilter');

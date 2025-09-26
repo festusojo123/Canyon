@@ -512,3 +512,32 @@
 .persona-item[data-persona-id="revenue"] .persona-icon { color: #ec4899; }
 .persona-item[data-persona-id="renewal"] .persona-icon { color: #6366f1; }
 
+.step-actions {
+    margin-top: 8px;
+}
+
+.btn-complete {
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.btn-complete:hover {
+    background: #059669;
+    transform: scale(1.05);
+}
+
+.workflow-step {
+    position: relative;
+}
+
+.workflow-step .step-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+}

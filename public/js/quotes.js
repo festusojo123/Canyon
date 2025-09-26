@@ -163,7 +163,45 @@ class QuotesApp {
         return card;
     }
 
-    createWorkflowProgress(workflow, currentStep) {
+    createQuoteCard(quote) {
+        this.currentQuoteId = quote.id; // Set current quote ID for workflow actions
+        
+        const card = document.createElement('div');
+        card.className = 'quote-card';
+        card.dataset.quoteId = quote.id; // Add quote ID to card
+        card.innerHTML = `
+            <div class="quote-header">
+                <div class="quote-info">
+                    <h3 class="quote-id">${quote.id}</h3>
+                    <p class="quote-customer">${quote.customer}</p>
+                    <div class="quote-meta">
+                        <span class="quote-amount">$${quote.amount.toLocaleString()}</span>
+                        <span class="quote-discount">${quote.discount}% discount</span>
+                        <span class="quote-date">Created: ${new Date(quote.createdDate).toLocaleDateString()}</span>
+                    </div>
+                </div>
+                <div class="quote-actions">
+                    <button class="btn-secondary btn-sm" onclick="quotesApp.editWorkflow('${quote.id}')">
+                        <i class="fas fa-edit"></i>
+                        Edit Workflow
+                    </button>
+                    <button class="btn-primary btn-sm" onclick="quotesApp.viewQuote('${quote.id}')">
+                        <i class="fas fa-eye"></i>
+                        View Details
+                    </button>
+                </div>
+            </div>
+            <div class="quote-workflow">
+                <div class="workflow-progress">
+                    ${this.createWorkflowProgress(quote.workflow, quote.currentStep, quote.id)}
+                </div>
+            </div>
+            <!-- rest of card content -->
+        `;
+        return card;
+    }
+
+        createWorkflowProgress(workflow, currentStep, quoteId) {
         return workflow.map((step, index) => {
             const isActive = step.id === currentStep;
             const isCompleted = step.status === 'completed';
@@ -175,21 +213,93 @@ class QuotesApp {
             else if (isActive) statusClass = 'active';
 
             return `
-                <div class="workflow-step ${statusClass}" data-step="${step.id}">
+                <div class="workflow-step ${statusClass} ${step.id}" data-step="${step.id}">
                     <div class="step-icon">
                         ${isCompleted ? '<i class="fas fa-check"></i>' : 
-                          isPending ? '<i class="fas fa-clock"></i>' : 
-                          '<i class="fas fa-circle"></i>'}
+                        isPending ? '<i class="fas fa-clock"></i>' : 
+                        '<i class="fas fa-circle"></i>'}
                     </div>
                     <div class="step-info">
                         <div class="step-name">${step.name}</div>
                         <div class="step-assignee">${step.assignee}</div>
                         ${step.completedDate ? `<div class="step-date">Completed: ${new Date(step.completedDate).toLocaleDateString()}</div>` : ''}
                     </div>
+                    ${(isPending || isActive) ? `
+                        <div class="step-actions">
+                            <button class="btn-complete" onclick="quotesApp.markStepComplete('${quoteId}', '${step.id}')" title="Mark Complete">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
                 ${index < workflow.length - 1 ? '<div class="step-connector"></div>' : ''}
             `;
         }).join('');
+    }
+
+    async markStepComplete(quoteId, stepId) {
+    try {
+        // Find the quote
+        const quote = this.quotes.find(q => q.id === quoteId);
+        if (!quote) {
+            throw new Error('Quote not found');
+            return;
+        }
+
+        // Find the step in the workflow
+        const stepIndex = quote.workflow.findIndex(step => step.id === stepId);
+        if (stepIndex === -1) {
+            throw new Error('Workflow step not found');
+            return;
+        }
+
+        // Update the step status
+        quote.workflow[stepIndex].status = 'completed';
+        quote.workflow[stepIndex].completedDate = new Date().toISOString().split('T')[0];
+
+        // Find the next step and make it active/pending
+        const nextStepIndex = stepIndex + 1;
+        if (nextStepIndex < quote.workflow.length) {
+            quote.workflow[nextStepIndex].status = 'pending';
+            quote.currentStep = quote.workflow[nextStepIndex].id;
+        } else {
+            // All steps completed
+            quote.status = 'approved';
+            quote.currentStep = null;
+        }
+
+        // Send update to server
+        const response = await fetch(`/api/quotes/${quoteId}/workflow`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ workflow: quote.workflow })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update workflow');
+        }
+
+        // Update local data
+        const result = await response.json();
+        const quoteIndex = this.quotes.findIndex(q => q.id === quoteId);
+        if (quoteIndex !== -1) {
+            this.quotes[quoteIndex] = result.quote;
+        }
+
+        // Refresh the display
+        this.filterQuotes();
+        this.showNotification(`Step "${quote.workflow[stepIndex].name}" marked as complete!`, 'success');
+
+        } catch (error) {
+            console.error('Error marking step complete:', error);
+            this.showNotification(error.message || 'Error updating workflow step', 'error');
+        }
+    }
+
+    getQuoteIdFromCard(step) {
+        return this.currentQuoteId; // We'll set this in createQuoteCard
     }
 
     filterQuotes() {
