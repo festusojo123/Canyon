@@ -172,6 +172,11 @@ class CanyonApp {
         if (data.isCreateQuotesRedirect) {
             this.handleCreateQuotesRedirect();
         }
+
+        // Special handling for support redirect
+        if (data.isSupportRedirect) {
+            this.handleSupportRedirect();
+        }
     }
 
     async handleQuotesTab() {
@@ -883,6 +888,7 @@ class CanyonApp {
                     <span>Connecting...</span>
                 `;
                 btn.disabled = true;
+                btn.classList.add('loading'); // Add this line
                 btn.dataset.originalContent = originalContent;
             }
         });
@@ -940,7 +946,7 @@ class CanyonApp {
         if (heroSubtitle) {
             heroSubtitle.innerHTML = `
                 Welcome back, <strong>${user.firstName}</strong>! 
-                Ready to explore your dashboard with our innovative vertical navigation system?
+                Ready to explore your dashboard with our innovative Q2C system?
             `;
         }
     }
@@ -1035,6 +1041,30 @@ class CanyonApp {
             }
         } catch (error) {
             console.error('Error checking auth for create quotes:', error);
+        }
+    }
+
+    async handleSupportRedirect() {
+        try {
+        const authResponse = await fetch('/api/user');
+        const authData = await authResponse.json();
+        
+        if (authData.authenticated) {
+            const redirectCTA = this.createEnhancedRedirectButton({
+                title: 'Access Support Center',
+                description: 'Get help, submit tickets, and access comprehensive documentation',
+                buttonText: 'Go to Support',
+                buttonIcon: 'fas fa-life-ring',
+                url: '/support',
+                gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                shadowColor: 'rgba(102, 126, 234, 0.4)',
+                features: ['Submit tickets', 'Live chat support', 'Knowledge base', 'System status']
+            });
+            
+            this.contentFeatures.appendChild(redirectCTA);
+        }
+        } catch (error) {
+            console.error('Error checking auth for support:', error);
         }
     }
 

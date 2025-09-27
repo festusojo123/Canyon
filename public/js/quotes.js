@@ -48,7 +48,7 @@ class QuotesApp {
                 window.location.href = '/insights';
                 break;
             case 'support':
-                window.location.href = '/dashboard';
+                window.location.href = '/support';
                 break;
             default:
                 console.log('Unknown tab:', tabType);

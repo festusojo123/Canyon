@@ -135,6 +135,10 @@ app.get('/insights', isAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'insights.html'));
 });
 
+app.get('/support', isAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'support.html'));
+});
+
 // Protected quotes routes
 app.get('/quotes', isAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'quotes.html'));
@@ -528,7 +532,7 @@ app.get('/api/content/:tab', (req, res) => {
             }
         },
         support: {
-            image: '🎧',
+            image: "🛟",
             title: '24/7 Support',
             subtitle: 'We\'re here to help',
             content: 'Get assistance whenever you need it with our dedicated support team available around the clock.',
@@ -541,6 +545,16 @@ app.get('/api/content/:tab', (req, res) => {
                 response: '< 1min',
                 satisfaction: '98%',
                 articles: '500+'
+            },
+            isSupportRedirect: true,
+            redirectConfig: {
+                title: 'Access Support Center',
+                description: 'Get personalized help with your team\'s needs from our support staff or AI-powered assistant.',
+                buttonText: 'Get Support',
+                buttonIcon: 'fas fa-life-ring',  // Changed from chart-bar to life-ring
+                url: '/support',  // Changed from /insights to /support
+                gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',  // Changed to purple gradient
+                shadowColor: 'rgba(102, 126, 234, 0.4)'  // Changed shadow color to match gradient
             }
         }
     };
