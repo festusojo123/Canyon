@@ -895,7 +895,7 @@ class CanyonApp {
     }
 
     updateUIForAuthenticatedUser(user) {
-        // Update Get Started button
+        // Update Get Started button (keep the existing hero button styling)
         const getStartedBtn = document.getElementById('getStartedBtn');
         if (getStartedBtn) {
             getStartedBtn.innerHTML = `
@@ -903,16 +903,19 @@ class CanyonApp {
                 <span>Go to Dashboard</span>
                 <i class="fas fa-arrow-right"></i>
             `;
+            getStartedBtn.classList.add('dashboard-btn');
             getStartedBtn.onclick = () => window.location.href = '/dashboard';
         }
 
-        // Update nav button
+        // Update nav button to match dashboard userMenu style
         const navSignIn = document.getElementById('navSignIn');
         if (navSignIn) {
             navSignIn.innerHTML = `
-                <img src="${user.picture}" alt="${user.name}" style="width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;">
-                Dashboard
+                <img src="${user.picture}" alt="${user.name}" style="width: 28px; height: 28px;">
+                <span>${user.firstName || user.name}</span>
             `;
+            // Remove any previous classes and add dashboard-btn
+            navSignIn.className = 'nav-cta dashboard-btn';
             navSignIn.onclick = () => window.location.href = '/dashboard';
         }
 
@@ -923,10 +926,11 @@ class CanyonApp {
                 <i class="fas fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             `;
+            tryNowBtn.classList.add('dashboard-btn');
             tryNowBtn.onclick = () => window.location.href = '/dashboard';
         }
 
-        // Update CTA button
+        // Update CTA button (keep the existing hero button styling)
         const ctaSignUp = document.getElementById('ctaSignUp');
         if (ctaSignUp) {
             ctaSignUp.innerHTML = `
@@ -934,6 +938,7 @@ class CanyonApp {
                 <span>Go to Dashboard</span>
                 <i class="fas fa-arrow-right"></i>
             `;
+            ctaSignUp.classList.add('dashboard-btn');
             ctaSignUp.onclick = () => window.location.href = '/dashboard';
         }
 
