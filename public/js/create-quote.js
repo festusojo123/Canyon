@@ -2,7 +2,6 @@ class CreateQuoteApp {
     constructor() {
         this.products = [];
         this.selectedProducts = [];
-        this.productCatalog = [];
         this.init();
     }
 
@@ -14,11 +13,11 @@ class CreateQuoteApp {
         this.productModal = document.getElementById('productModal');
         this.closeModalBtn = document.getElementById('closeModal');
         this.productSearch = document.getElementById('productSearch');
-        this.productCatalog = document.getElementById('productCatalog');
+        this.productCatalogElement = document.getElementById('productCatalog');
         this.productsList = document.getElementById('productsList');
         this.saveAsDraftBtn = document.getElementById('saveAsDraft');
         this.submitQuoteBtn = document.getElementById('submitQuote');
-        
+
         // Summary elements
         this.subtotalAmount = document.getElementById('subtotalAmount');
         this.discountAmount = document.getElementById('discountAmount');
@@ -94,10 +93,25 @@ class CreateQuoteApp {
         }
     }
 
+    async loadProductCatalog() {
+        try {
+            const response = await fetch('/api/products');
+            if (!response.ok) {
+                throw new Error('Failed to load products');
+            }
+            this.products = await response.json();
+            this.renderProductCatalog();
+        } catch (error) {
+            console.error('Error loading product catalog:', error);
+            // Use default product catalog if API fails
+            this.products = [];
+        }
+    }
+
     renderProductCatalog(filteredProducts = null) {
-        const products = filteredProducts || this.productCatalog;
-        
-        this.productCatalog.innerHTML = products.map(product => `
+        const products = filteredProducts || this.products;
+
+        this.productCatalogElement.innerHTML = products.map(product => `
             <div class="catalog-item" data-product-id="${product.id}">
                 <div class="category">${product.category}</div>
                 <h4>${product.name}</h4>
@@ -112,7 +126,7 @@ class CreateQuoteApp {
         `).join('');
 
         // Add click listeners
-        this.productCatalog.querySelectorAll('.catalog-item').forEach(item => {
+        this.productCatalogElement.querySelectorAll('.catalog-item').forEach(item => {
             item.addEventListener('click', () => {
                 const productId = item.getAttribute('data-product-id');
                 this.addProductToQuote(productId);
@@ -126,7 +140,7 @@ class CreateQuoteApp {
             return;
         }
 
-        const filtered = this.productCatalog.filter(product =>
+        const filtered = this.products.filter(product =>
             product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
             product.category.toLowerCase().includes(searchTerm.toLowerCase())
@@ -147,7 +161,7 @@ class CreateQuoteApp {
     }
 
     addProductToQuote(productId) {
-        const product = this.productCatalog.find(p => p.id === productId);
+        const product = this.products.find(p => p.id === productId);
         if (!product) return;
 
         // Check if product already exists

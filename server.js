@@ -23,7 +23,7 @@ app.use(session({
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : false,
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
 }));
@@ -98,6 +98,8 @@ app.get('/auth/google/callback',
     (req, res) => {
         console.log('✅ OAuth authentication successful');
         console.log('User:', req.user && req.user.email ? req.user.email : 'Unknown user');
+        console.log('Session ID before save:', req.sessionID);
+        console.log('Session data:', JSON.stringify(req.session));
 
         // Save session before redirecting to avoid race condition
         req.session.save((err) => {
@@ -106,6 +108,8 @@ app.get('/auth/google/callback',
                 return res.redirect('/?error=session_error');
             }
             console.log('💾 Session saved successfully');
+            console.log('Session ID after save:', req.sessionID);
+            console.log('Redirecting to:', process.env.SUCCESS_REDIRECT || '/dashboard');
             res.redirect(process.env.SUCCESS_REDIRECT || '/dashboard');
         });
     }
@@ -128,7 +132,18 @@ app.post('/auth/logout', (req, res) => {
 });
 
 // Protected dashboard route
-app.get('/dashboard', isAuthenticated, (req, res) => {
+app.get('/dashboard', (req, res) => {
+    console.log('📊 Dashboard accessed');
+    console.log('Session ID:', req.sessionID);
+    console.log('Session data:', JSON.stringify(req.session));
+    console.log('Is authenticated:', req.isAuthenticated());
+    console.log('User:', req.user);
+
+    if (!req.isAuthenticated()) {
+        console.log('❌ Not authenticated, redirecting to /?error=unauthorized');
+        return res.redirect('/?error=unauthorized');
+    }
+
     res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 
@@ -426,6 +441,60 @@ app.get('/api/quotes', (req, res) => {
         return res.status(401).json({ error: 'Authentication required' });
     }
     res.json(mockQuotes);
+});
+
+// API endpoint to get products catalog
+app.get('/api/products', (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const mockProducts = [
+        {
+            id: 'ENT-LIC-001',
+            name: 'Enterprise License',
+            category: 'Software License',
+            basePrice: 50000,
+            description: 'Full enterprise license with unlimited users'
+        },
+        {
+            id: 'STD-LIC-001',
+            name: 'Standard License',
+            category: 'Software License',
+            basePrice: 25000,
+            description: 'Standard license for up to 100 users'
+        },
+        {
+            id: 'PREM-SUP-001',
+            name: 'Premium Support',
+            category: 'Support Services',
+            basePrice: 15000,
+            description: '24/7 premium support with dedicated account manager'
+        },
+        {
+            id: 'BAS-SUP-001',
+            name: 'Basic Support',
+            category: 'Support Services',
+            basePrice: 5000,
+            description: 'Standard business hours support'
+        },
+        {
+            id: 'CUS-INT-001',
+            name: 'Custom Integration',
+            category: 'Professional Services',
+            basePrice: 35000,
+            description: 'Custom API integration and configuration services'
+        },
+        {
+            id: 'TRAIN-001',
+            name: 'Training Package',
+            category: 'Professional Services',
+            basePrice: 10000,
+            description: 'Comprehensive training for your team'
+        }
+    ];
+
+    res.json(mockProducts);
 });
 
 // API endpoint to get workflow personas
