@@ -92,8 +92,14 @@ app.get('/auth/google',
 );
 
 app.get('/auth/google/callback',
+    (req, res, next) => {
+        console.log('🔄 OAuth callback received');
+        console.log('Query params:', req.query);
+        next();
+    },
     passport.authenticate('google', {
-        failureRedirect: process.env.FAILURE_REDIRECT || '/?error=auth_failed'
+        failureRedirect: process.env.FAILURE_REDIRECT || '/?error=auth_failed',
+        failureMessage: true
     }),
     (req, res) => {
         console.log('✅ OAuth authentication successful');
