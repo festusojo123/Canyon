@@ -8,17 +8,22 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+// Trust proxy - required for Cloud Run
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(express.static('public'));
 app.use(express.json());
 
 // Session configuration
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'fallback-secret-key', // Fixed: added fallback
+    secret: process.env.SESSION_SECRET || 'fallback-secret-key',
     resave: false,
     saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: 'lax',
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
 }));
@@ -63,9 +68,14 @@ passport.deserializeUser((user, done) => {
 
 // Authentication middleware
 const isAuthenticated = (req, res, next) => {
+    console.log('🔐 Auth check - isAuthenticated:', req.isAuthenticated());
+    console.log('📋 Session ID:', req.sessionID);
+    console.log('👤 User:', req.user ? req.user.email : 'None');
+
     if (req.isAuthenticated()) {
         return next();
     }
+    console.log('❌ Not authenticated, redirecting to /?error=unauthorized');
     res.redirect('/?error=unauthorized');
 };
 
