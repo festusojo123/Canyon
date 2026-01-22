@@ -86,7 +86,18 @@ app.get('/auth/google/callback',
         failureRedirect: process.env.FAILURE_REDIRECT || '/?error=auth_failed'
     }),
     (req, res) => {
-        res.redirect(process.env.SUCCESS_REDIRECT || '/dashboard');
+        console.log('✅ OAuth authentication successful');
+        console.log('User:', req.user && req.user.email ? req.user.email : 'Unknown user');
+
+        // Save session before redirecting to avoid race condition
+        req.session.save((err) => {
+            if (err) {
+                console.error('❌ Session save error:', err);
+                return res.redirect('/?error=session_error');
+            }
+            console.log('💾 Session saved successfully');
+            res.redirect(process.env.SUCCESS_REDIRECT || '/dashboard');
+        });
     }
 );
 
@@ -149,7 +160,10 @@ app.get('/quotes/create', isAuthenticated, (req, res) => {
 });
 
 // API endpoint to get insights data
-app.get('/api/insights', isAuthenticated, (req, res) => {
+app.get('/api/insights', (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
     // Mock insights data - replace with actual database queries
     const insightsData = {
         overview: {
@@ -239,7 +253,10 @@ app.get('/api/insights', isAuthenticated, (req, res) => {
 });
 
 // API endpoint to get filtered insights data
-app.get('/api/insights/filter', isAuthenticated, (req, res) => {
+app.get('/api/insights/filter', (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
     const { dateRange, salesRep, status } = req.query;
     
     // Mock filtered data based on query parameters
@@ -394,17 +411,26 @@ const mockQuotes = [
 ];
 
 // API endpoint to get quotes
-app.get('/api/quotes', isAuthenticated, (req, res) => {
+app.get('/api/quotes', (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
     res.json(mockQuotes);
 });
 
 // API endpoint to get workflow personas
-app.get('/api/workflow-personas', isAuthenticated, (req, res) => {
+app.get('/api/workflow-personas', (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
     res.json(workflowPersonas);
 });
 
 // API endpoint to update quote workflow
-app.put('/api/quotes/:id/workflow', isAuthenticated, (req, res) => {
+app.put('/api/quotes/:id/workflow', (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
     const quoteId = req.params.id;
     const { workflow } = req.body;
     
@@ -582,7 +608,10 @@ app.post('/api/logout', (req, res) => {
 });
 
 // AI quote generation endpoint
-app.post('/api/quotes/generate-ai', isAuthenticated, (req, res) => {
+app.post('/api/quotes/generate-ai', (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
     const { prompt, customerContext } = req.body;
     
     setTimeout(() => {

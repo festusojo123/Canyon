@@ -7,10 +7,9 @@ class CanyonApp {
     async init() {
         this.setupElements();
         this.setupEventListeners();
-        
+
         console.log('Initializing quotes app...'); // Debug log
-        
-        await this.loadQuotes();
+
         this.updateStats();
     }
 
@@ -319,27 +318,35 @@ class CanyonApp {
             if (!response.ok) {
                 if (response.status === 401) {
                     // Redirect to login or show auth required message
-                    document.getElementById('quotesList').innerHTML = `
-                        <div class="auth-required">
-                            <div class="auth-message">
-                                <i class="fas fa-lock"></i>
-                                <h3>Session Expired</h3>
-                                <p>Please sign in again to access quotes</p>
-                                <button class="btn-primary" onclick="app.initiateGoogleSSO()">
-                                    <i class="fab fa-google"></i>
-                                    Sign In with Google
-                                </button>
+                    const quotesList = document.getElementById('quotesList');
+                    if (quotesList) {
+                        quotesList.innerHTML = `
+                            <div class="auth-required">
+                                <div class="auth-message">
+                                    <i class="fas fa-lock"></i>
+                                    <h3>Session Expired</h3>
+                                    <p>Please sign in again to access quotes</p>
+                                    <button class="btn-primary" onclick="app.initiateGoogleSSO()">
+                                        <i class="fab fa-google"></i>
+                                        Sign In with Google
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    `;
+                        `;
+                    }
                     return;
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const quotes = await response.json();
-            
+
             const quotesList = document.getElementById('quotesList');
+            if (!quotesList) {
+                console.error('quotesList element not found');
+                return;
+            }
+
             quotesList.innerHTML = '';
 
             if (quotes.length === 0) {
@@ -364,35 +371,19 @@ class CanyonApp {
 
         } catch (error) {
             console.error('Error loading quotes:', error);
-            document.getElementById('quotesList').innerHTML = `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Error loading quotes: ${error.message}</p>
-                    <button class="btn-secondary" onclick="app.loadQuotes()">
-                        <i class="fas fa-refresh"></i>
-                        Try Again
-                    </button>
-                </div>
-            `;
-        }
-    }
-
-    async handleQuotesTab() {
-        try {
-            // Check authentication first
-            const authResponse = await fetch('/api/user');
-            const authData = await authResponse.json();
-            
-            if (authData.authenticated) {
-                // User is authenticated, load full quotes interface
-                this.loadQuotesInterface();
-            } else {
-                // User not authenticated, show preview with sign-in prompt
-                this.showQuotesPreview();
+            const quotesList = document.getElementById('quotesList');
+            if (quotesList) {
+                quotesList.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error loading quotes: ${error.message}</p>
+                        <button class="btn-secondary" onclick="app.loadQuotes()">
+                            <i class="fas fa-refresh"></i>
+                            Try Again
+                        </button>
+                    </div>
+                `;
             }
-        } catch (error) {
-            console.error('Error checking auth for quotes:', error);
-            this.showQuotesPreview();
         }
     }
 
@@ -554,71 +545,6 @@ class CanyonApp {
         // Replace the features section with the preview
         this.contentFeatures.innerHTML = '';
         this.contentFeatures.appendChild(quotesContainer);
-    }
-
-    // Update the loadQuotes method to handle authentication better
-    async loadQuotes() {
-        try {
-            const response = await fetch('/api/quotes');
-            if (!response.ok) {
-                if (response.status === 401) {
-                    // Redirect to login or show auth required message
-                    document.getElementById('quotesList').innerHTML = `
-                        <div class="auth-required">
-                            <div class="auth-message">
-                                <i class="fas fa-lock"></i>
-                                <h3>Session Expired</h3>
-                                <p>Please sign in again to access quotes</p>
-                                <button class="btn-primary" onclick="app.initiateGoogleSSO()">
-                                    <i class="fab fa-google"></i>
-                                    Sign In with Google
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    return;
-                }
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const quotes = await response.json();
-            
-            const quotesList = document.getElementById('quotesList');
-            quotesList.innerHTML = '';
-
-            if (quotes.length === 0) {
-                quotesList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-file-invoice"></i>
-                        <h3>No Quotes Found</h3>
-                        <p>Create your first quote to get started</p>
-                        <button class="btn-primary" onclick="app.createNewQuote()">
-                            <i class="fas fa-plus"></i>
-                            Create New Quote
-                        </button>
-                    </div>
-                `;
-                return;
-            }
-
-            quotes.forEach(quote => {
-                const quoteCard = this.createQuoteCard(quote);
-                quotesList.appendChild(quoteCard);
-            });
-
-        } catch (error) {
-            console.error('Error loading quotes:', error);
-            document.getElementById('quotesList').innerHTML = `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Error loading quotes: ${error.message}</p>
-                    <button class="btn-secondary" onclick="app.loadQuotes()">
-                        <i class="fas fa-refresh"></i>
-                        Try Again
-                    </button>
-                </div>
-            `;
-        }
     }
 
     updateStats(stats) {
@@ -1184,30 +1110,6 @@ class CanyonApp {
         }
     }
 
-    async loadQuotes() {
-        try {
-            const response = await fetch('/api/quotes');
-            const quotes = await response.json();
-            
-            const quotesList = document.getElementById('quotesList');
-            quotesList.innerHTML = '';
-
-            quotes.forEach(quote => {
-                const quoteCard = this.createQuoteCard(quote);
-                quotesList.appendChild(quoteCard);
-            });
-
-        } catch (error) {
-            console.error('Error loading quotes:', error);
-            document.getElementById('quotesList').innerHTML = `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    Error loading quotes. Please try again.
-                </div>
-            `;
-        }
-    }
-
     createQuoteCard(quote) {
         const card = document.createElement('div');
         card.className = 'quote-card';
@@ -1472,7 +1374,7 @@ class CanyonApp {
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new CanyonApp();
+    window.app = new CanyonApp();
 });
 
 // Additional interactive features
